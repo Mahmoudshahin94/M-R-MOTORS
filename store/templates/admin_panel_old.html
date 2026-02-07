@@ -1,0 +1,465 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Admin Panel - M&R Motors{% endblock %}
+
+{% block extra_head %}
+<script type="module" src="{% static 'js/instant_db.js' %}"></script>
+<script type="module" src="{% static 'js/admin.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+<!-- Admin Panel Content -->
+<div id="admin-content">
+    <!-- Page Header -->
+    <section class="bg-gradient-to-r from-primary-black to-gray-900 py-16 border-b border-gray-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h1 class="text-4xl md:text-5xl font-bold text-white mb-4">
+                Admin <span class="text-accent-red">Panel</span>
+            </h1>
+            <p class="text-xl text-secondary-silver">
+                Manage your car inventory
+            </p>
+        </div>
+    </section>
+    
+    <!-- Add Car Section -->
+    <section class="py-16 bg-primary-black">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="bg-gray-900 rounded-lg p-8 border border-gray-800">
+                <h2 class="text-3xl font-bold text-white mb-6">Add New Car</h2>
+                
+                <form id="add-car-form" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Title -->
+                        <div>
+                            <label for="car-title" class="block text-white font-semibold mb-2">Title *</label>
+                            <input 
+                                type="text" 
+                                id="car-title" 
+                                required
+                                placeholder="e.g., 2018 Honda Accord"
+                                class="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-white placeholder-gray-500 focus:outline-none focus:border-accent-red"
+                            >
+                        </div>
+                        
+                        <!-- Car Model -->
+                        <div>
+                            <label for="car-model" class="block text-white font-semibold mb-2">Car Model *</label>
+                            <input 
+                                type="text" 
+                                id="car-model" 
+                                required
+                                placeholder="e.g., Honda Accord EX"
+                                class="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-white placeholder-gray-500 focus:outline-none focus:border-accent-red"
+                            >
+                        </div>
+                        
+                        <!-- Year -->
+                        <div>
+                            <label for="car-year" class="block text-white font-semibold mb-2">Year *</label>
+                            <input 
+                                type="number" 
+                                id="car-year" 
+                                required
+                                min="1900"
+                                max="2030"
+                                placeholder="e.g., 2018"
+                                class="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-white placeholder-gray-500 focus:outline-none focus:border-accent-red"
+                            >
+                        </div>
+                        
+                        <!-- Price -->
+                        <div>
+                            <label for="car-price" class="block text-white font-semibold mb-2">Price (USD) *</label>
+                            <input 
+                                type="number" 
+                                id="car-price" 
+                                required
+                                min="0"
+                                step="100"
+                                placeholder="e.g., 15000"
+                                class="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-white placeholder-gray-500 focus:outline-none focus:border-accent-red"
+                            >
+                        </div>
+                    </div>
+                    
+                    <!-- Image URL -->
+                    <div>
+                        <label for="car-image-url" class="block text-white font-semibold mb-2">Image URL *</label>
+                        <input 
+                            type="url" 
+                            id="car-image-url" 
+                            required
+                            placeholder="https://example.com/car-image.jpg"
+                            class="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-white placeholder-gray-500 focus:outline-none focus:border-accent-red"
+                        >
+                        <p class="text-secondary-silver text-sm mt-2">
+                            💡 Tip: Upload your image to a free image hosting service like Imgur or use a direct image URL
+                        </p>
+                    </div>
+                    
+                    <!-- Description -->
+                    <div>
+                        <label for="car-description" class="block text-white font-semibold mb-2">Description *</label>
+                        <textarea 
+                            id="car-description" 
+                            required
+                            rows="4"
+                            placeholder="Describe the car's features, condition, mileage, etc."
+                            class="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-white placeholder-gray-500 focus:outline-none focus:border-accent-red"
+                        ></textarea>
+                    </div>
+                    
+                    <!-- Submit Button -->
+                    <div class="flex justify-end">
+                        <button 
+                            type="submit"
+                            id="add-car-btn"
+                            class="bg-accent-red text-white px-8 py-3 rounded-lg font-semibold hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            Add Car
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Manage Inventory Section -->
+    <section class="py-16 bg-gray-900">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-3xl font-bold text-white mb-8">Manage Inventory</h2>
+            
+            <!-- Loading State -->
+            <div id="inventory-loading" class="flex justify-center py-12">
+                <div class="text-center">
+                    <div class="spinner mx-auto mb-4"></div>
+                    <p class="text-secondary-silver">Loading inventory...</p>
+                </div>
+            </div>
+            
+            <!-- Empty State -->
+            <div id="inventory-empty" class="hidden text-center py-12">
+                <div class="text-6xl mb-6">📋</div>
+                <p class="text-xl text-secondary-silver">
+                    No cars in inventory yet. Add your first car above!
+                </p>
+            </div>
+            
+            <!-- Inventory Table -->
+            <div id="inventory-table-container" class="hidden overflow-x-auto">
+                <table class="w-full bg-gray-800 rounded-lg overflow-hidden">
+                    <thead class="bg-gray-700">
+                        <tr>
+                            <th class="px-6 py-4 text-left text-white font-semibold">Image</th>
+                            <th class="px-6 py-4 text-left text-white font-semibold">Title</th>
+                            <th class="px-6 py-4 text-left text-white font-semibold">Year</th>
+                            <th class="px-6 py-4 text-left text-white font-semibold">Price</th>
+                            <th class="px-6 py-4 text-left text-white font-semibold">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inventory-table-body">
+                        <!-- Rows will be dynamically inserted here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- Edit Modal -->
+<div id="edit-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+    <div class="bg-gray-900 rounded-lg max-w-2xl w-full max-h-screen overflow-y-auto border border-gray-800">
+        <div class="p-8">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold text-white">Edit Car</h3>
+                <button id="close-edit-modal" class="text-gray-400 hover:text-white text-3xl">&times;</button>
+            </div>
+            
+            <form id="edit-car-form" class="space-y-6">
+                <input type="hidden" id="edit-car-id">
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="edit-car-title" class="block text-white font-semibold mb-2">Title *</label>
+                        <input 
+                            type="text" 
+                            id="edit-car-title" 
+                            required
+                            class="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-accent-red"
+                        >
+                    </div>
+                    
+                    <div>
+                        <label for="edit-car-model" class="block text-white font-semibold mb-2">Car Model *</label>
+                        <input 
+                            type="text" 
+                            id="edit-car-model" 
+                            required
+                            class="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-accent-red"
+                        >
+                    </div>
+                    
+                    <div>
+                        <label for="edit-car-year" class="block text-white font-semibold mb-2">Year *</label>
+                        <input 
+                            type="number" 
+                            id="edit-car-year" 
+                            required
+                            class="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-accent-red"
+                        >
+                    </div>
+                    
+                    <div>
+                        <label for="edit-car-price" class="block text-white font-semibold mb-2">Price (USD) *</label>
+                        <input 
+                            type="number" 
+                            id="edit-car-price" 
+                            required
+                            class="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-accent-red"
+                        >
+                    </div>
+                </div>
+                
+                <div>
+                    <label for="edit-car-image-url" class="block text-white font-semibold mb-2">Image URL *</label>
+                    <input 
+                        type="url" 
+                        id="edit-car-image-url" 
+                        required
+                        class="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-accent-red"
+                    >
+                </div>
+                
+                <div>
+                    <label for="edit-car-description" class="block text-white font-semibold mb-2">Description *</label>
+                    <textarea 
+                        id="edit-car-description" 
+                        required
+                        rows="4"
+                        class="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-accent-red"
+                    ></textarea>
+                </div>
+                
+                <div class="flex justify-end space-x-4">
+                    <button 
+                        type="button"
+                        id="cancel-edit-btn"
+                        class="bg-gray-700 text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-600"
+                    >
+                        Cancel
+                    </button>
+                    <button 
+                        type="submit"
+                        id="save-edit-btn"
+                        class="bg-accent-red text-white px-6 py-3 rounded-lg font-semibold hover:bg-red-700"
+                    >
+                        Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    // Django already authenticated the user, so we can show the admin panel immediately
+    document.addEventListener('DOMContentLoaded', () => {
+        // Show admin content
+        const adminContent = document.getElementById('admin-content');
+        adminContent.classList.remove('hidden');
+        
+        // Initialize admin panel
+        initAdminPanel();
+    });
+    
+    function initAdminPanel() {
+        // Setup add car form
+        document.getElementById('add-car-form').addEventListener('submit', handleAddCar);
+        
+        // Setup edit form
+        document.getElementById('edit-car-form').addEventListener('submit', handleEditCar);
+        document.getElementById('close-edit-modal').addEventListener('click', closeEditModal);
+        document.getElementById('cancel-edit-btn').addEventListener('click', closeEditModal);
+        
+        // Load inventory
+        loadInventory();
+    }
+    
+    function loadInventory() {
+        window.db.subscribeQuery({ posts: {} }, (result) => {
+            const loading = document.getElementById('inventory-loading');
+            const empty = document.getElementById('inventory-empty');
+            const table = document.getElementById('inventory-table-container');
+            
+            loading.classList.add('hidden');
+            
+            if (result.error || !result.data?.posts || result.data.posts.length === 0) {
+                empty.classList.remove('hidden');
+                table.classList.add('hidden');
+            } else {
+                empty.classList.add('hidden');
+                table.classList.remove('hidden');
+                renderInventoryTable(result.data.posts);
+            }
+        });
+    }
+    
+    function renderInventoryTable(cars) {
+        const tbody = document.getElementById('inventory-table-body');
+        
+        // Sort by created_at (newest first)
+        const sortedCars = [...cars].sort((a, b) => (b.created_at || 0) - (a.created_at || 0));
+        
+        tbody.innerHTML = sortedCars.map(car => `
+            <tr class="border-b border-gray-700 hover:bg-gray-750">
+                <td class="px-6 py-4">
+                    <img 
+                        src="${car.image_url || 'https://via.placeholder.com/80x60?text=No+Image'}" 
+                        alt="${car.title}"
+                        class="w-20 h-15 object-cover rounded"
+                        onerror="this.src='https://via.placeholder.com/80x60?text=No+Image'"
+                    >
+                </td>
+                <td class="px-6 py-4 text-white">${car.title || car.car_model}</td>
+                <td class="px-6 py-4 text-secondary-silver">${car.year || '-'}</td>
+                <td class="px-6 py-4 text-accent-red font-semibold">${window.formatPrice(car.price || 0)}</td>
+                <td class="px-6 py-4">
+                    <div class="flex space-x-2">
+                        <button 
+                            onclick="window.editCar('${car.id}')"
+                            class="bg-blue-600 text-white px-4 py-2 rounded text-sm font-semibold hover:bg-blue-700"
+                        >
+                            Edit
+                        </button>
+                        <button 
+                            onclick="window.confirmDeleteCar('${car.id}', '${(car.title || car.car_model || 'this car').replace(/'/g, "\\'")}')"
+                            class="bg-red-600 text-white px-4 py-2 rounded text-sm font-semibold hover:bg-red-700"
+                        >
+                            Delete
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+    }
+    
+    async function handleAddCar(e) {
+        e.preventDefault();
+        
+        const btn = document.getElementById('add-car-btn');
+        btn.disabled = true;
+        btn.textContent = 'Adding...';
+        
+        try {
+            const carData = {
+                title: document.getElementById('car-title').value.trim(),
+                car_model: document.getElementById('car-model').value.trim(),
+                year: parseInt(document.getElementById('car-year').value),
+                price: parseFloat(document.getElementById('car-price').value),
+                image_url: document.getElementById('car-image-url').value.trim(),
+                description: document.getElementById('car-description').value.trim(),
+                created_at: Date.now()
+            };
+            
+            // Add car directly to InstantDB without requiring auth
+            const carId = window.id();
+            await window.db.transact([
+                window.tx.posts[carId].update(carData)
+            ]);
+            
+            alert('Car added successfully!');
+            document.getElementById('add-car-form').reset();
+        } catch (error) {
+            console.error('Error adding car:', error);
+            alert('Failed to add car: ' + error.message);
+        }
+        
+        btn.disabled = false;
+        btn.textContent = 'Add Car';
+    }
+    
+    // Make functions globally available
+    window.editCar = async (carId) => {
+        // Fetch car data
+        const { data } = await window.db.useQuery({
+            posts: {
+                $: {
+                    where: { id: carId }
+                }
+            }
+        });
+        
+        const car = data?.posts?.[0];
+        if (!car) {
+            alert('Car not found');
+            return;
+        }
+        
+        // Populate form
+        document.getElementById('edit-car-id').value = car.id;
+        document.getElementById('edit-car-title').value = car.title || '';
+        document.getElementById('edit-car-model').value = car.car_model || '';
+        document.getElementById('edit-car-year').value = car.year || '';
+        document.getElementById('edit-car-price').value = car.price || '';
+        document.getElementById('edit-car-image-url').value = car.image_url || '';
+        document.getElementById('edit-car-description').value = car.description || '';
+        
+        // Show modal
+        document.getElementById('edit-modal').classList.remove('hidden');
+    };
+    
+    window.confirmDeleteCar = async (carId, carTitle) => {
+        if (confirm(`Are you sure you want to delete "${carTitle}"? This action cannot be undone.`)) {
+            try {
+                await window.db.transact([
+                    window.tx.posts[carId].delete()
+                ]);
+                alert('Car deleted successfully!');
+            } catch (error) {
+                console.error('Error deleting car:', error);
+                alert('Failed to delete car: ' + error.message);
+            }
+        }
+    };
+    
+    async function handleEditCar(e) {
+        e.preventDefault();
+        
+        const btn = document.getElementById('save-edit-btn');
+        btn.disabled = true;
+        btn.textContent = 'Saving...';
+        
+        try {
+            const carId = document.getElementById('edit-car-id').value;
+            const updates = {
+                title: document.getElementById('edit-car-title').value.trim(),
+                car_model: document.getElementById('edit-car-model').value.trim(),
+                year: parseInt(document.getElementById('edit-car-year').value),
+                price: parseFloat(document.getElementById('edit-car-price').value),
+                image_url: document.getElementById('edit-car-image-url').value.trim(),
+                description: document.getElementById('edit-car-description').value.trim(),
+            };
+            
+            await window.db.transact([
+                window.tx.posts[carId].update(updates)
+            ]);
+            
+            alert('Car updated successfully!');
+            closeEditModal();
+        } catch (error) {
+            console.error('Error updating car:', error);
+            alert('Failed to update car: ' + error.message);
+        }
+        
+        btn.disabled = false;
+        btn.textContent = 'Save Changes';
+    }
+    
+    function closeEditModal() {
+        document.getElementById('edit-modal').classList.add('hidden');
+        document.getElementById('edit-car-form').reset();
+    }
+</script>
+{% endblock %}

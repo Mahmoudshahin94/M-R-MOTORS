@@ -1,0 +1,640 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Admin Panel - M&R Motors{% endblock %}
+
+{% block content %}
+<!-- Admin Panel Content -->
+<div id="admin-content">
+    <!-- Page Header -->
+    <section class="bg-gradient-to-r from-primary-black to-gray-900 py-16 border-b border-gray-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h1 class="text-4xl md:text-5xl font-bold text-white mb-4">
+                Admin <span class="text-accent-red">Panel</span>
+            </h1>
+            <p class="text-xl text-secondary-silver">
+                Manage your car inventory and admin users
+            </p>
+        </div>
+    </section>
+    
+    <!-- Messages -->
+    {% if messages %}
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+            {% for message in messages %}
+                <div class="p-4 rounded-lg mb-4 {% if message.tags == 'error' %}bg-red-900 border border-red-700 text-red-200{% else %}bg-green-900 border border-green-700 text-green-200{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    
+    <!-- Tabs -->
+    <section class="py-8 bg-gray-900 border-b border-gray-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex space-x-4">
+                <button 
+                    onclick="showTab('inventory')"
+                    id="tab-inventory"
+                    class="tab-button active px-6 py-3 rounded-lg font-semibold"
+                >
+                    Car Inventory
+                </button>
+                <button 
+                    onclick="showTab('admins')"
+                    id="tab-admins"
+                    class="tab-button px-6 py-3 rounded-lg font-semibold"
+                >
+                    Admin Users
+                </button>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Car Inventory Tab -->
+    <div id="inventory-tab" class="tab-content">
+        <!-- Add Car Section -->
+        <section class="py-16 bg-primary-black">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="bg-gray-900 rounded-lg p-8 border border-gray-800">
+                    <h2 class="text-3xl font-bold text-white mb-6">Add New Car</h2>
+                    
+                    <form id="add-car-form" enctype="multipart/form-data" class="space-y-6">
+                        {% csrf_token %}
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-white font-semibold mb-2">Title *</label>
+                                <input 
+                                    type="text" 
+                                    name="title" 
+                                    required
+                                    placeholder="e.g., 2018 Honda Accord"
+                                    class="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-white placeholder-gray-500 focus:outline-none focus:border-accent-red"
+                                >
+                            </div>
+                            
+                            <div>
+                                <label class="block text-white font-semibold mb-2">Car Model *</label>
+                                <input 
+                                    type="text" 
+                                    name="car_model" 
+                                    required
+                                    placeholder="e.g., Honda Accord EX"
+                                    class="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-white placeholder-gray-500 focus:outline-none focus:border-accent-red"
+                                >
+                            </div>
+                            
+                            <div>
+                                <label class="block text-white font-semibold mb-2">Year *</label>
+                                <input 
+                                    type="number" 
+                                    name="year" 
+                                    required
+                                    min="1900"
+                                    max="2030"
+                                    placeholder="e.g., 2018"
+                                    class="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-white placeholder-gray-500 focus:outline-none focus:border-accent-red"
+                                >
+                            </div>
+                            
+                            <div>
+                                <label class="block text-white font-semibold mb-2">Price (USD) *</label>
+                                <input 
+                                    type="number" 
+                                    name="price" 
+                                    required
+                                    min="0"
+                                    step="100"
+                                    placeholder="e.g., 15000"
+                                    class="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-white placeholder-gray-500 focus:outline-none focus:border-accent-red"
+                                >
+                            </div>
+                            
+                            <div>
+                                <label class="block text-white font-semibold mb-2">Mileage</label>
+                                <input 
+                                    type="number" 
+                                    name="mileage"
+                                    placeholder="e.g., 50000"
+                                    class="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-white placeholder-gray-500 focus:outline-none focus:border-accent-red"
+                                >
+                            </div>
+                            
+                            <div>
+                                <label class="block text-white font-semibold mb-2">Condition</label>
+                                <select 
+                                    name="condition"
+                                    class="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-accent-red"
+                                >
+                                    <option value="">Select condition</option>
+                                    <option value="Excellent">Excellent</option>
+                                    <option value="Good">Good</option>
+                                    <option value="Fair">Fair</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-white font-semibold mb-2">Photos * (Multiple allowed)</label>
+                            <input 
+                                type="file" 
+                                name="images" 
+                                id="car-images"
+                                multiple
+                                accept="image/*"
+                                required
+                                class="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-accent-red file:text-white hover:file:bg-red-700"
+                            >
+                            <p class="text-secondary-silver text-sm mt-2">
+                                📷 Select multiple photos. First photo will be the primary image.
+                            </p>
+                            <div id="image-preview" class="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4"></div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-white font-semibold mb-2">Description *</label>
+                            <textarea 
+                                name="description" 
+                                required
+                                rows="4"
+                                placeholder="Describe the car's features, condition, history, etc."
+                                class="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-white placeholder-gray-500 focus:outline-none focus:border-accent-red"
+                            ></textarea>
+                        </div>
+                        
+                        <div class="flex justify-end space-x-3">
+                            <button 
+                                type="button"
+                                id="cancel-edit-btn"
+                                onclick="cancelEdit()"
+                                class="hidden bg-gray-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-gray-700"
+                            >
+                                Cancel
+                            </button>
+                            <button 
+                                type="submit"
+                                id="add-car-btn"
+                                class="bg-accent-red text-white px-8 py-3 rounded-lg font-semibold hover:bg-red-700 disabled:opacity-50"
+                            >
+                                Add Car
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Manage Inventory Section -->
+        <section class="py-16 bg-gray-900">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 class="text-3xl font-bold text-white mb-8">Manage Inventory</h2>
+                
+                <div id="inventory-loading" class="flex justify-center py-12">
+                    <div class="text-center">
+                        <div class="spinner mx-auto mb-4"></div>
+                        <p class="text-secondary-silver">Loading inventory...</p>
+                    </div>
+                </div>
+                
+                <div id="inventory-empty" class="hidden text-center py-12">
+                    <div class="text-6xl mb-6">📋</div>
+                    <p class="text-xl text-secondary-silver">
+                        No cars in inventory yet. Add your first car above!
+                    </p>
+                </div>
+                
+                <div id="inventory-grid" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+            </div>
+        </section>
+    </div>
+    
+    <!-- Admin Users Tab -->
+    <div id="admins-tab" class="tab-content hidden">
+        <section class="py-16 bg-primary-black">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="bg-gray-900 rounded-lg p-8 border border-gray-800 mb-8">
+                    <h2 class="text-3xl font-bold text-white mb-6">Add Admin User</h2>
+                    
+                    <form id="add-admin-form" class="space-y-6">
+                        <div>
+                            <label class="block text-white font-semibold mb-2">User Email *</label>
+                            <input 
+                                type="email" 
+                                id="admin-email"
+                                required
+                                placeholder="user@example.com"
+                                class="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-white placeholder-gray-500 focus:outline-none focus:border-accent-red"
+                            >
+                            <p class="text-secondary-silver text-sm mt-2">
+                                💡 User must have an existing account
+                            </p>
+                        </div>
+                        
+                        <div class="flex justify-end">
+                            <button 
+                                type="submit"
+                                class="bg-accent-red text-white px-8 py-3 rounded-lg font-semibold hover:bg-red-700"
+                            >
+                                Add Admin
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                
+                <div class="bg-gray-900 rounded-lg p-8 border border-gray-800">
+                    <h2 class="text-3xl font-bold text-white mb-6">Current Admin Users</h2>
+                    
+                    <div id="admins-loading" class="flex justify-center py-12">
+                        <div class="text-center">
+                            <div class="spinner mx-auto mb-4"></div>
+                            <p class="text-secondary-silver">Loading admin users...</p>
+                        </div>
+                    </div>
+                    
+                    <div id="admins-list" class="hidden space-y-4"></div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+
+<style>
+    .tab-button {
+        background: transparent;
+        color: #cbd5e1;
+        border: 1px solid #374151;
+    }
+    
+    .tab-button.active {
+        background: #dc2626;
+        color: white;
+        border-color: #dc2626;
+    }
+    
+    .tab-button:hover:not(.active) {
+        background: #1f2937;
+        color: white;
+    }
+</style>
+
+<script>
+    // Tab management
+    function showTab(tabName) {
+        // Hide all tabs
+        document.querySelectorAll('.tab-content').forEach(tab => {
+            tab.classList.add('hidden');
+        });
+        document.querySelectorAll('.tab-button').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        
+        // Show selected tab
+        document.getElementById(`${tabName}-tab`).classList.remove('hidden');
+        document.getElementById(`tab-${tabName}`).classList.add('active');
+    }
+    
+    // Image preview
+    document.getElementById('car-images')?.addEventListener('change', function(e) {
+        const preview = document.getElementById('image-preview');
+        preview.innerHTML = '';
+        
+        Array.from(e.target.files).forEach((file, idx) => {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const div = document.createElement('div');
+                div.className = 'relative';
+                div.innerHTML = `
+                    <img src="${e.target.result}" class="w-full h-32 object-cover rounded-lg border-2 ${idx === 0 ? 'border-accent-red' : 'border-gray-700'}">
+                    ${idx === 0 ? '<span class="absolute top-1 left-1 bg-accent-red text-white text-xs px-2 py-1 rounded">Primary</span>' : ''}
+                `;
+                preview.appendChild(div);
+            };
+            reader.readAsDataURL(file);
+        });
+    });
+    
+    // Add/Edit car form
+    document.getElementById('add-car-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const btn = document.getElementById('add-car-btn');
+        const isEditMode = this.dataset.editMode === 'true';
+        const carId = this.dataset.carId;
+        
+        btn.disabled = true;
+        btn.textContent = isEditMode ? 'Updating...' : 'Adding...';
+        
+        const formData = new FormData(this);
+        
+        try {
+            const url = isEditMode 
+                ? `/api/cars/${carId}/update/`
+                : '{% url "add_car" %}';
+                
+            const response = await fetch(url, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                }
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                alert(isEditMode ? 'Car updated successfully!' : 'Car added successfully!');
+                this.reset();
+                document.getElementById('image-preview').innerHTML = '';
+                
+                // Reset form to add mode
+                delete this.dataset.editMode;
+                delete this.dataset.carId;
+                btn.textContent = 'Add Car';
+                document.getElementById('cancel-edit-btn').classList.add('hidden');
+                document.getElementById('car-images').required = true;
+                
+                loadInventory();
+            } else {
+                alert('Error: ' + result.error);
+            }
+        } catch (error) {
+            alert(`Error ${isEditMode ? 'updating' : 'adding'} car: ` + error.message);
+        }
+        
+        btn.disabled = false;
+        if (!isEditMode) {
+            btn.textContent = 'Add Car';
+        }
+    });
+    
+    // Load inventory
+    async function loadInventory() {
+        const loading = document.getElementById('inventory-loading');
+        const empty = document.getElementById('inventory-empty');
+        const grid = document.getElementById('inventory-grid');
+        
+        loading.classList.remove('hidden');
+        empty.classList.add('hidden');
+        grid.classList.add('hidden');
+        
+        try {
+            const response = await fetch('{% url "get_cars_api" %}');
+            const data = await response.json();
+            
+            loading.classList.add('hidden');
+            
+            if (data.cars && data.cars.length > 0) {
+                grid.classList.remove('hidden');
+                grid.innerHTML = data.cars.map(car => `
+                    <div class="bg-gray-800 rounded-lg overflow-hidden border border-gray-700 hover:border-accent-red transition-colors">
+                        <div class="relative">
+                            <img 
+                                src="${car.primary_image || 'https://via.placeholder.com/400x300?text=No+Image'}" 
+                                alt="${car.title}"
+                                class="w-full h-48 object-cover"
+                            >
+                            ${car.is_sold ? '<div class="absolute top-2 right-2 bg-red-600 text-white px-3 py-1 rounded-full text-sm font-bold">SOLD</div>' : ''}
+                        </div>
+                        <div class="p-4">
+                            <h3 class="text-white font-bold text-lg mb-2">${car.title}</h3>
+                            <p class="text-secondary-silver text-sm mb-2">${car.year} ${car.car_model}</p>
+                            <p class="text-accent-red font-bold text-xl mb-4">$${car.price.toLocaleString()}</p>
+                            <div class="space-y-2">
+                                <button 
+                                    onclick="editCar(${car.id})"
+                                    class="w-full bg-blue-600 text-white px-4 py-2 rounded text-sm font-semibold hover:bg-blue-700"
+                                >
+                                    Edit
+                                </button>
+                                <button 
+                                    onclick="toggleSoldStatus(${car.id}, '${car.title.replace(/'/g, "\\'")}', ${car.is_sold})"
+                                    class="w-full ${car.is_sold ? 'bg-green-600 hover:bg-green-700' : 'bg-yellow-600 hover:bg-yellow-700'} text-white px-4 py-2 rounded text-sm font-semibold"
+                                >
+                                    ${car.is_sold ? 'Mark as Available' : 'Mark as Sold'}
+                                </button>
+                                <button 
+                                    onclick="deleteCar(${car.id}, '${car.title.replace(/'/g, "\\'")}')"
+                                    class="w-full bg-red-600 text-white px-4 py-2 rounded text-sm font-semibold hover:bg-red-700"
+                                >
+                                    Delete
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                empty.classList.remove('hidden');
+            }
+        } catch (error) {
+            console.error('Error loading inventory:', error);
+            loading.classList.add('hidden');
+            empty.classList.remove('hidden');
+        }
+    }
+    
+    // Cancel edit mode
+    function cancelEdit() {
+        const form = document.getElementById('add-car-form');
+        form.reset();
+        delete form.dataset.editMode;
+        delete form.dataset.carId;
+        
+        document.getElementById('add-car-btn').textContent = 'Add Car';
+        document.getElementById('cancel-edit-btn').classList.add('hidden');
+        document.getElementById('car-images').required = true;
+        document.getElementById('image-preview').innerHTML = '';
+    }
+    
+    // Edit car
+    async function editCar(carId) {
+        try {
+            // Fetch car details
+            const response = await fetch('{% url "get_cars_api" %}');
+            const data = await response.json();
+            const car = data.cars.find(c => c.id === carId);
+            
+            if (!car) {
+                alert('Car not found');
+                return;
+            }
+            
+            // Populate form with car data
+            const form = document.getElementById('add-car-form');
+            form.elements['title'].value = car.title;
+            form.elements['car_model'].value = car.car_model;
+            form.elements['year'].value = car.year;
+            form.elements['price'].value = car.price;
+            form.elements['mileage'].value = car.mileage || '';
+            form.elements['condition'].value = car.condition || '';
+            form.elements['description'].value = car.description;
+            
+            // Change form action and button text
+            const submitBtn = document.getElementById('add-car-btn');
+            submitBtn.textContent = 'Update Car';
+            document.getElementById('cancel-edit-btn').classList.remove('hidden');
+            form.dataset.editMode = 'true';
+            form.dataset.carId = carId;
+            
+            // Make images optional for editing
+            document.getElementById('car-images').required = false;
+            
+            // Scroll to form
+            form.scrollIntoView({ behavior: 'smooth' });
+            
+            // Show note about editing
+            alert('Editing mode: Update the fields you want to change. Images are optional when editing.');
+        } catch (error) {
+            alert('Error loading car details: ' + error.message);
+        }
+    }
+    
+    // Toggle sold status
+    async function toggleSoldStatus(carId, carTitle, currentStatus) {
+        const newStatus = currentStatus ? 'available' : 'sold';
+        if (!confirm(`Mark "${carTitle}" as ${newStatus}?`)) return;
+        
+        try {
+            const response = await fetch(`/api/cars/${carId}/toggle-sold/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                }
+            });
+            
+            const result = await response.json();
+            if (result.success) {
+                alert(`Car marked as ${newStatus}!`);
+                loadInventory();
+            } else {
+                alert('Error: ' + result.error);
+            }
+        } catch (error) {
+            alert('Error updating status: ' + error.message);
+        }
+    }
+    
+    // Delete car
+    async function deleteCar(carId, carTitle) {
+        if (!confirm(`Are you sure you want to delete "${carTitle}"?`)) return;
+        
+        try {
+            const response = await fetch(`/api/cars/${carId}/delete/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                }
+            });
+            
+            const result = await response.json();
+            if (result.success) {
+                alert('Car deleted successfully!');
+                loadInventory();
+            } else {
+                alert('Error: ' + result.error);
+            }
+        } catch (error) {
+            alert('Error deleting car: ' + error.message);
+        }
+    }
+    
+    // Load admin users
+    async function loadAdmins() {
+        const loading = document.getElementById('admins-loading');
+        const list = document.getElementById('admins-list');
+        
+        loading.classList.remove('hidden');
+        list.classList.add('hidden');
+        
+        try {
+            const response = await fetch('{% url "get_admin_users" %}');
+            const data = await response.json();
+            
+            loading.classList.add('hidden');
+            list.classList.remove('hidden');
+            
+            if (data.admins && data.admins.length > 0) {
+                list.innerHTML = data.admins.map(admin => `
+                    <div class="bg-gray-800 rounded-lg p-4 border border-gray-700 flex justify-between items-center">
+                        <div>
+                            <p class="text-white font-semibold">${admin.email}</p>
+                            <p class="text-secondary-silver text-sm">${admin.first_name} ${admin.last_name}</p>
+                            <p class="text-gray-500 text-xs mt-1">Added by ${admin.created_by}</p>
+                        </div>
+                        <button 
+                            onclick="removeAdmin(${admin.id}, '${admin.email}')"
+                            class="bg-red-600 text-white px-4 py-2 rounded text-sm font-semibold hover:bg-red-700"
+                        >
+                            Remove
+                        </button>
+                    </div>
+                `).join('');
+            } else {
+                list.innerHTML = '<p class="text-secondary-silver text-center py-8">No admin users yet.</p>';
+            }
+        } catch (error) {
+            console.error('Error loading admins:', error);
+            list.innerHTML = '<p class="text-red-500 text-center py-8">Error loading admin users</p>';
+        }
+    }
+    
+    // Add admin form
+    document.getElementById('add-admin-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const email = document.getElementById('admin-email').value;
+        
+        try {
+            const response = await fetch('{% url "add_admin_user" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({ email })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                alert('Admin user added successfully!');
+                this.reset();
+                loadAdmins();
+            } else {
+                alert('Error: ' + result.error);
+            }
+        } catch (error) {
+            alert('Error adding admin: ' + error.message);
+        }
+    });
+    
+    // Remove admin
+    async function removeAdmin(adminId, email) {
+        if (!confirm(`Remove ${email} from admin users?`)) return;
+        
+        try {
+            const response = await fetch(`/api/admin-users/${adminId}/remove/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                }
+            });
+            
+            const result = await response.json();
+            if (result.success) {
+                alert('Admin removed successfully!');
+                loadAdmins();
+            } else {
+                alert('Error: ' + result.error);
+            }
+        } catch (error) {
+            alert('Error removing admin: ' + error.message);
+        }
+    }
+    
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+        loadInventory();
+        loadAdmins();
+    });
+</script>
+{% endblock %}

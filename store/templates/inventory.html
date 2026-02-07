@@ -1,0 +1,288 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Inventory - M&R Motors{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<section class="bg-gradient-to-r from-primary-black to-gray-900 py-16 border-b border-gray-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h1 class="text-4xl md:text-5xl font-bold text-white mb-4">
+            Our <span class="text-accent-red">Inventory</span>
+        </h1>
+        <p class="text-xl text-secondary-silver">
+            Browse our selection of quality used cars
+        </p>
+    </div>
+</section>
+
+<!-- Loading State -->
+<div id="loading-state" class="flex justify-center items-center py-20">
+    <div class="text-center">
+        <div class="spinner mx-auto mb-4"></div>
+        <p class="text-secondary-silver">Loading inventory...</p>
+    </div>
+</div>
+
+<!-- Empty State -->
+<div id="empty-state" class="hidden py-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <div class="text-6xl mb-6">🚗</div>
+        <h2 class="text-3xl font-bold text-white mb-4">No Cars Available</h2>
+        <p class="text-xl text-secondary-silver mb-8">
+            We're currently updating our inventory. Check back soon or contact us for more information.
+        </p>
+        <a href="https://wa.me/14094998722" 
+           target="_blank"
+           class="inline-block bg-accent-red text-white px-8 py-3 rounded-lg font-semibold hover:bg-red-700">
+            Contact Us on WhatsApp
+        </a>
+    </div>
+</div>
+
+<!-- Cars Grid -->
+<section id="cars-grid" class="hidden py-16 bg-primary-black">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div id="cars-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- Cars will be dynamically inserted here -->
+        </div>
+    </div>
+</section>
+
+<script>
+    // Immediately invoked function to avoid async issues
+    (function() {
+        console.log('Script started');
+        
+        // Wait for DOM to be fully loaded
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initInventory);
+        } else {
+            initInventory();
+        }
+        
+        function initInventory() {
+            console.log('DOM loaded, starting inventory fetch...');
+            const loadingState = document.getElementById('loading-state');
+            const emptyState = document.getElementById('empty-state');
+            const carsGrid = document.getElementById('cars-grid');
+            const carsContainer = document.getElementById('cars-container');
+            
+            console.log('Elements found:', {
+                loadingState: !!loadingState,
+                emptyState: !!emptyState,
+                carsGrid: !!carsGrid,
+                carsContainer: !!carsContainer
+            });
+            
+            // Fetch cars from Django API
+            console.log('Fetching from API...');
+            fetch('{% url "get_cars_api" %}')
+                .then(response => {
+                    console.log('API response:', response.status, response.statusText);
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('API data:', data);
+                    
+                    // Hide loading state
+                    loadingState.classList.add('hidden');
+                    
+                    if (!data.cars || data.cars.length === 0) {
+                        console.log('No cars found in API response');
+                        // Show empty state
+                        emptyState.classList.remove('hidden');
+                        carsGrid.classList.add('hidden');
+                    } else {
+                        console.log(`Found ${data.cars.length} cars, rendering...`);
+                        // Show cars grid
+                        emptyState.classList.add('hidden');
+                        carsGrid.classList.remove('hidden');
+                        
+                        // Render cars
+                        renderCars(data.cars);
+                        console.log('Cars rendered successfully');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading inventory:', error);
+                    loadingState.classList.add('hidden');
+                    emptyState.classList.remove('hidden');
+                });
+        
+            // Track user's favorites
+            var userFavorites = new Set();
+            const isLoggedIn = {{ user.is_authenticated|lower }};
+            
+            // Load user's favorites if logged in
+            function loadUserFavorites(callback) {
+                if (!isLoggedIn) {
+                    if (callback) callback();
+                    return;
+                }
+                
+                fetch('{% url "get_user_favorites" %}')
+                    .then(response => response.json())
+                    .then(data => {
+                        userFavorites = new Set(data.favorite_ids.map(String));
+                        console.log('Loaded favorites:', userFavorites);
+                        if (callback) callback();
+                    })
+                    .catch(error => {
+                        console.error('Error loading favorites:', error);
+                        if (callback) callback();
+                    });
+            }
+            
+            function renderCars(cars) {
+                console.log('renderCars called with', cars.length, 'cars');
+                
+                // Load favorites first, then render
+                loadUserFavorites(function() {
+                    // Filter out sold cars and sort by created_at (newest first)
+                    const availableCars = cars.filter(car => !car.is_sold);
+                    console.log('Available cars (not sold):', availableCars.length);
+                    
+                    const sortedCars = availableCars.sort(function(a, b) {
+                        const dateA = new Date(a.created_at);
+                        const dateB = new Date(b.created_at);
+                        return dateB - dateA;
+                    });
+                    
+                    if (sortedCars.length === 0) {
+                        console.log('No available cars to display');
+                        emptyState.classList.remove('hidden');
+                        carsGrid.classList.add('hidden');
+                        return;
+                    }
+                    
+                    console.log('Creating HTML for', sortedCars.length, 'cars');
+                    const html = sortedCars.map(car => createCarCard(car)).join('');
+                    carsContainer.innerHTML = html;
+                    console.log('HTML injected into container');
+                });
+            }
+        
+            function createCarCard(car) {
+                const price = car.price ? '$' + car.price.toLocaleString() : 'Contact for price';
+                const imageUrl = car.primary_image || 'https://via.placeholder.com/400x300?text=No+Image';
+                const title = car.title || car.car_model || 'Car';
+                const year = car.year || '';
+                const description = car.description || '';
+                const truncatedDesc = description.length > 100 
+                    ? description.substring(0, 100) + '...' 
+                    : description;
+                
+                // WhatsApp message
+                const message = 'Hi, I\'m interested in the ' + title + (year ? ' (' + year + ')' : '');
+                const encodedMessage = encodeURIComponent(message);
+                const whatsapp1 = 'https://wa.me/14094998722?text=' + encodedMessage;
+                const whatsapp2 = 'https://wa.me/12544501993?text=' + encodedMessage;
+                
+                // Check if car is favorited
+                const isFavorite = userFavorites.has(String(car.id));
+                const favoriteButtonHtml = isLoggedIn ? 
+                    '<button onclick="toggleFavorite(\'' + car.id + '\', \'' + title.replace(/'/g, "\\'") + '\', ' + (car.price || 0) + ', \'' + imageUrl.replace(/'/g, "\\'") + '\')" ' +
+                    'id="fav-btn-' + car.id + '" ' +
+                    'class="absolute top-4 left-4 ' + (isFavorite ? 'bg-red-600' : 'bg-gray-800 bg-opacity-70') + ' text-white p-2 rounded-full hover:scale-110 transition-all shadow-lg" ' +
+                    'title="' + (isFavorite ? 'Remove from favorites' : 'Add to favorites') + '">' +
+                    '<svg class="w-6 h-6 ' + (isFavorite ? 'fill-current' : '') + '" fill="' + (isFavorite ? 'currentColor' : 'none') + '" stroke="currentColor" viewBox="0 0 24 24">' +
+                    '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>' +
+                    '</svg></button>' : '';
+                
+                return '<div class="bg-gray-900 rounded-lg overflow-hidden border border-gray-800 hover:border-accent-red transform hover:scale-105 transition-all">' +
+                    '<div class="relative h-64 bg-gray-800 overflow-hidden">' +
+                    '<img src="' + imageUrl + '" alt="' + title + '" class="w-full h-full object-cover" onerror="this.src=\'https://via.placeholder.com/400x300?text=No+Image\'">' +
+                    favoriteButtonHtml +
+                    (year ? '<div class="absolute top-4 right-4 bg-accent-red text-white px-3 py-1 rounded-full text-sm font-semibold">' + year + '</div>' : '') +
+                    '</div>' +
+                    '<div class="p-6">' +
+                    '<h3 class="text-2xl font-bold text-white mb-2">' + title + '</h3>' +
+                    '<p class="text-3xl font-bold text-accent-red mb-4">' + price + '</p>' +
+                    (truncatedDesc ? '<p class="text-secondary-silver mb-4">' + truncatedDesc + '</p>' : '') +
+                    '<div class="space-y-3">' +
+                    '<a href="/car/' + car.id + '/" class="block w-full bg-accent-red text-white text-center px-4 py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors">View Details</a>' +
+                    '<div class="grid grid-cols-2 gap-2">' +
+                    '<a href="' + whatsapp1 + '" target="_blank" class="bg-green-600 text-white text-center px-4 py-2 rounded-lg text-sm font-semibold hover:bg-green-700 transition-colors">📱 WhatsApp 1</a>' +
+                    '<a href="' + whatsapp2 + '" target="_blank" class="bg-green-600 text-white text-center px-4 py-2 rounded-lg text-sm font-semibold hover:bg-green-700 transition-colors">📱 WhatsApp 2</a>' +
+                    '</div></div></div></div>';
+            }
+        }
+    })();
+    
+    // Toggle favorite status (global function)
+    window.toggleFavorite = function(carId, carTitle, carPrice, carImageUrl) {
+        const isLoggedIn = {{ user.is_authenticated|lower }};
+        
+        if (!isLoggedIn) {
+            alert('Please log in to save favorites');
+            window.location.href = '{% url "login" %}';
+            return;
+        }
+        
+        // Check if in favorites
+        fetch('{% url "get_user_favorites" %}')
+            .then(response => response.json())
+            .then(favData => {
+                const userFavs = new Set(favData.favorite_ids.map(String));
+                const isFavorite = userFavs.has(String(carId));
+                const url = isFavorite ? '{% url "remove_from_favorites" %}' : '{% url "add_to_favorites" %}';
+                
+                return fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({
+                        car_id: String(carId),
+                        car_title: carTitle,
+                        car_price: carPrice,
+                        car_image_url: carImageUrl
+                    })
+                }).then(response => response.json())
+                  .then(data => ({data: data, wasFavorite: isFavorite}));
+            })
+            .then(result => {
+                if (result.data.success) {
+                    // Update button appearance
+                    const button = document.getElementById('fav-btn-' + carId);
+                    if (button) {
+                        const svg = button.querySelector('svg');
+                        if (result.wasFavorite) {
+                            button.className = button.className.replace('bg-red-600', 'bg-gray-800 bg-opacity-70');
+                            svg.setAttribute('fill', 'none');
+                            button.title = 'Add to favorites';
+                        } else {
+                            button.className = button.className.replace('bg-gray-800 bg-opacity-70', 'bg-red-600');
+                            svg.setAttribute('fill', 'currentColor');
+                            button.title = 'Remove from favorites';
+                        }
+                    }
+                    showNotification(result.data.message, 'success');
+                } else {
+                    showNotification('Failed to update favorites', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error toggling favorite:', error);
+                showNotification('An error occurred', 'error');
+            });
+    };
+    
+    function showNotification(message, type) {
+        const notification = document.createElement('div');
+        notification.className = `fixed top-4 right-4 px-6 py-3 rounded-lg text-white font-semibold shadow-lg z-50 ${
+            type === 'success' ? 'bg-green-600' : 'bg-red-600'
+        }`;
+        notification.textContent = message;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.style.transition = 'opacity 0.3s';
+            notification.style.opacity = '0';
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
+    }
+</script>
+{% endblock %}

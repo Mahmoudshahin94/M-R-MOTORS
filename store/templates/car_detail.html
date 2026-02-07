@@ -1,0 +1,171 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Car Details - M&R Motors{% endblock %}
+
+{% block extra_head %}
+{% endblock %}
+
+{% block content %}
+<!-- Loading State -->
+<div id="loading-state" class="flex justify-center items-center py-20">
+    <div class="text-center">
+        <div class="spinner mx-auto mb-4"></div>
+        <p class="text-secondary-silver">Loading car details...</p>
+    </div>
+</div>
+
+<!-- Car Not Found State -->
+<div id="not-found-state" class="hidden py-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <div class="text-6xl mb-6">❌</div>
+        <h2 class="text-3xl font-bold text-white mb-4">Car Not Found</h2>
+        <p class="text-xl text-secondary-silver mb-8">
+            Sorry, we couldn't find the car you're looking for.
+        </p>
+        <a href="{% url 'inventory' %}" 
+           class="inline-block bg-accent-red text-white px-8 py-3 rounded-lg font-semibold hover:bg-red-700">
+            Back to Inventory
+        </a>
+    </div>
+</div>
+
+<!-- Car Detail Content -->
+<div id="car-content" class="hidden">
+    <!-- Car Detail Section -->
+    <section class="py-16 bg-primary-black">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                <!-- Car Image -->
+                <div>
+                    <div id="car-image-container" class="rounded-lg overflow-hidden border border-gray-800 bg-gray-900">
+                        <img id="car-image" src="" alt="" class="w-full h-auto">
+                    </div>
+                </div>
+                
+                <!-- Car Information -->
+                <div>
+                    <div id="car-year" class="inline-block bg-accent-red text-white px-4 py-2 rounded-full text-sm font-semibold mb-4"></div>
+                    <h1 id="car-title" class="text-4xl md:text-5xl font-bold text-white mb-4"></h1>
+                    <p id="car-price" class="text-4xl md:text-5xl font-bold text-accent-red mb-6"></p>
+                    
+                    <!-- Car Specs -->
+                    <div id="car-specs" class="mb-6 space-y-2"></div>
+                    
+                    <p id="car-description" class="text-lg text-secondary-silver mb-8 leading-relaxed"></p>
+                    
+                    <!-- WhatsApp Buttons -->
+                    <div class="space-y-3">
+                        <h3 class="text-xl font-bold text-white mb-3">Contact Us About This Car</h3>
+                        <a 
+                            id="whatsapp-1"
+                            href="#" 
+                            target="_blank"
+                            class="block w-full bg-green-600 text-white text-center px-6 py-4 rounded-lg text-lg font-semibold hover:bg-green-700 transition-colors"
+                        >
+                            📱 WhatsApp: (409) 499-8722
+                        </a>
+                        <a 
+                            id="whatsapp-2"
+                            href="#" 
+                            target="_blank"
+                            class="block w-full bg-green-600 text-white text-center px-6 py-4 rounded-lg text-lg font-semibold hover:bg-green-700 transition-colors"
+                        >
+                            📱 WhatsApp: (254) 450-1993
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<script>
+    (function() {
+        console.log('Car detail script started');
+        const carId = '{{ car_id }}';
+        
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initCarDetail);
+        } else {
+            initCarDetail();
+        }
+        
+        function initCarDetail() {
+            console.log('Loading car details for ID:', carId);
+            loadCarDetails();
+        }
+        
+        function loadCarDetails() {
+            fetch('{% url "get_cars_api" %}')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('API data received:', data);
+                    document.getElementById('loading-state').classList.add('hidden');
+                    
+                    // Find the car with matching ID
+                    const car = data.cars.find(c => String(c.id) === String(carId));
+                    
+                    if (!car) {
+                        console.log('Car not found');
+                        document.getElementById('not-found-state').classList.remove('hidden');
+                        return;
+                    }
+                    
+                    console.log('Car found:', car);
+                    renderCarDetails(car);
+                    document.getElementById('car-content').classList.remove('hidden');
+                })
+                .catch(error => {
+                    console.error('Error loading car details:', error);
+                    document.getElementById('loading-state').classList.add('hidden');
+                    document.getElementById('not-found-state').classList.remove('hidden');
+                });
+        }
+        
+        function renderCarDetails(car) {
+            const price = car.price ? '$' + car.price.toLocaleString() : 'Contact for price';
+            const imageUrl = car.primary_image || 'https://via.placeholder.com/800x600?text=No+Image';
+            const title = car.title || car.car_model || 'Car';
+            const year = car.year || '';
+            const description = car.description || 'No description available.';
+            
+            // Set car details
+            document.getElementById('car-image').src = imageUrl;
+            document.getElementById('car-image').alt = title;
+            document.getElementById('car-title').textContent = title;
+            document.getElementById('car-price').textContent = price;
+            document.getElementById('car-description').textContent = description;
+            
+            if (year) {
+                document.getElementById('car-year').textContent = year;
+            } else {
+                document.getElementById('car-year').classList.add('hidden');
+            }
+            
+            // Add car specs
+            var specsHtml = '';
+            if (car.mileage) {
+                specsHtml += '<div class="flex items-center text-secondary-silver"><span class="font-semibold text-white mr-2">Mileage:</span>' + car.mileage.toLocaleString() + ' miles</div>';
+            }
+            if (car.condition) {
+                specsHtml += '<div class="flex items-center text-secondary-silver"><span class="font-semibold text-white mr-2">Condition:</span>' + car.condition + '</div>';
+            }
+            if (specsHtml) {
+                document.getElementById('car-specs').innerHTML = specsHtml;
+            }
+            
+            // Set WhatsApp links
+            const message = 'Hi, I\'m interested in the ' + title + (year ? ' (' + year + ')' : '');
+            const encodedMessage = encodeURIComponent(message);
+            document.getElementById('whatsapp-1').href = 'https://wa.me/14094998722?text=' + encodedMessage;
+            document.getElementById('whatsapp-2').href = 'https://wa.me/12544501993?text=' + encodedMessage;
+            
+            // Update page title
+            document.title = title + ' - M&R Motors';
+            
+            console.log('Car details rendered successfully');
+        }
+    })();
+</script>
+{% endblock %}

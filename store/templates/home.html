@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}M&R Motors - Your Trusted Auto Dealer{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="relative h-screen flex items-center justify-center overflow-hidden">
+    <!-- Background Gradient -->
+    <div class="absolute inset-0 bg-gradient-to-br from-primary-black via-gray-900 to-accent-red opacity-90"></div>
+    
+    <!-- Hero Content -->
+    <div class="relative z-10 text-center px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto">
+        <h1 class="text-5xl md:text-7xl font-bold text-white mb-6 animate-fade-in">
+            Welcome to <span class="text-accent-red">M&R Motors</span>
+        </h1>
+        <p class="text-xl md:text-2xl text-secondary-silver mb-8 max-w-3xl mx-auto">
+            Your Trusted Auto Dealer in Texas
+        </p>
+        <p class="text-lg md:text-xl text-gray-300 mb-12 max-w-2xl mx-auto">
+            We specialize in quality used cars with transparent pricing and exceptional customer service. Find your perfect vehicle today!
+        </p>
+        
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <a href="{% url 'inventory' %}" 
+               class="bg-accent-red text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-red-700 transform hover:scale-105 shadow-lg">
+                Browse Inventory
+            </a>
+            <a href="{% url 'location' %}" 
+               class="bg-white text-primary-black px-8 py-4 rounded-lg text-lg font-semibold hover:bg-secondary-silver transform hover:scale-105 shadow-lg">
+                Visit Us
+            </a>
+        </div>
+    </div>
+    
+    <!-- Decorative elements -->
+    <div class="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-primary-black to-transparent"></div>
+</section>
+
+<!-- Features Section -->
+<section class="py-20 bg-primary-black">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+            <h2 class="text-4xl md:text-5xl font-bold text-white mb-4">
+                Why Choose <span class="text-accent-red">M&R Motors</span>?
+            </h2>
+            <p class="text-xl text-secondary-silver">
+                We're committed to providing the best car buying experience
+            </p>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <!-- Feature 1 -->
+            <div class="bg-gray-900 p-8 rounded-lg border border-gray-800 hover:border-accent-red transform hover:scale-105">
+                <div class="text-accent-red text-5xl mb-4">🚗</div>
+                <h3 class="text-2xl font-bold text-white mb-4">Quality Cars</h3>
+                <p class="text-secondary-silver">
+                    Every vehicle is carefully inspected and maintained to ensure reliability and performance. We stand behind the quality of our inventory.
+                </p>
+            </div>
+            
+            <!-- Feature 2 -->
+            <div class="bg-gray-900 p-8 rounded-lg border border-gray-800 hover:border-accent-red transform hover:scale-105">
+                <div class="text-accent-red text-5xl mb-4">✅</div>
+                <h3 class="text-2xl font-bold text-white mb-4">Trusted Service</h3>
+                <p class="text-secondary-silver">
+                    With years of experience in the automotive industry, we provide honest, transparent service that puts your needs first.
+                </p>
+            </div>
+            
+            <!-- Feature 3 -->
+            <div class="bg-gray-900 p-8 rounded-lg border border-gray-800 hover:border-accent-red transform hover:scale-105">
+                <div class="text-accent-red text-5xl mb-4">💬</div>
+                <h3 class="text-2xl font-bold text-white mb-4">Easy Contact</h3>
+                <p class="text-secondary-silver">
+                    Connect with us instantly via WhatsApp or phone. We're here to answer your questions and help you find the perfect car.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Call to Action Section -->
+<section class="py-20 bg-gradient-to-r from-accent-red to-red-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h2 class="text-4xl md:text-5xl font-bold text-white mb-6">
+            Ready to Find Your Perfect Car?
+        </h2>
+        <p class="text-xl text-white mb-8 max-w-2xl mx-auto opacity-90">
+            Browse our current inventory and contact us today. We're here to help you every step of the way.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <a href="{% url 'inventory' %}" 
+               class="bg-white text-accent-red px-8 py-4 rounded-lg text-lg font-semibold hover:bg-secondary-silver transform hover:scale-105 shadow-lg">
+                View All Cars
+            </a>
+            <a href="https://wa.me/14094998722" 
+               target="_blank"
+               class="bg-primary-black text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-900 transform hover:scale-105 shadow-lg">
+                WhatsApp Us
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Contact Information Section -->
+<section class="py-20 bg-gray-900">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+            <h2 class="text-4xl font-bold text-white mb-4">Get in Touch</h2>
+            <p class="text-xl text-secondary-silver">We're here to help you find your next vehicle</p>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-5xl mx-auto">
+            <!-- Phone 1 -->
+            <div class="text-center">
+                <div class="text-accent-red text-4xl mb-3">📞</div>
+                <h3 class="text-lg font-semibold text-white mb-2">Primary Contact</h3>
+                <a href="tel:+14094998722" class="text-secondary-silver hover:text-white text-lg">
+                    (409) 499-8722
+                </a>
+            </div>
+            
+            <!-- Phone 2 -->
+            <div class="text-center">
+                <div class="text-accent-red text-4xl mb-3">📞</div>
+                <h3 class="text-lg font-semibold text-white mb-2">Secondary Contact</h3>
+                <a href="tel:+12544501993" class="text-secondary-silver hover:text-white text-lg">
+                    (254) 450-1993
+                </a>
+            </div>
+            
+            <!-- Email -->
+            <div class="text-center">
+                <div class="text-accent-red text-4xl mb-3">✉️</div>
+                <h3 class="text-lg font-semibold text-white mb-2">Email Us</h3>
+                <a href="mailto:mrtexasmotors@gmail.com" class="text-secondary-silver hover:text-white text-lg break-all">
+                    mrtexasmotors@gmail.com
+                </a>
+            </div>
+            
+            <!-- Facebook -->
+            <div class="text-center">
+                <div class="text-accent-red text-4xl mb-3">📘</div>
+                <h3 class="text-lg font-semibold text-white mb-2">Follow Us</h3>
+                <a href="https://www.facebook.com/p/Mr-motors-61567264663550/" target="_blank" class="text-secondary-silver hover:text-white text-lg">
+                    Facebook
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    @keyframes fade-in {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .animate-fade-in {
+        animation: fade-in 1s ease-out;
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Favorites - M&R Motors{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<section class="bg-gradient-to-r from-primary-black to-gray-900 py-16 border-b border-gray-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h1 class="text-4xl md:text-5xl font-bold text-white mb-4">
+            My <span class="text-accent-red">Favorites</span>
+        </h1>
+        <p class="text-xl text-secondary-silver">
+            Your saved cars collection ({{ favorites_count }} car{{ favorites_count|pluralize }})
+        </p>
+    </div>
+</section>
+
+{% if favorites_count == 0 %}
+    <!-- Empty State -->
+    <section class="py-20 bg-primary-black">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <div class="text-6xl mb-6">❤️</div>
+            <h2 class="text-3xl font-bold text-white mb-4">No Favorites Yet</h2>
+            <p class="text-xl text-secondary-silver mb-8">
+                Start building your collection by adding cars to your favorites!
+            </p>
+            <a href="{% url 'inventory' %}" 
+               class="inline-block bg-accent-red text-white px-8 py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors">
+                Browse Inventory
+            </a>
+        </div>
+    </section>
+{% else %}
+    <!-- Favorites Grid -->
+    <section class="py-16 bg-primary-black">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {% for favorite in favorites %}
+                    <div class="bg-gray-900 rounded-lg overflow-hidden border border-gray-800 hover:border-accent-red transform hover:scale-105 transition-all" data-favorite-id="{{ favorite.car_id }}">
+                        <!-- Car Image -->
+                        <div class="relative h-64 bg-gray-800 overflow-hidden">
+                            {% if favorite.car_image_url %}
+                                <img 
+                                    src="{{ favorite.car_image_url }}" 
+                                    alt="{{ favorite.car_title }}"
+                                    class="w-full h-full object-cover"
+                                    onerror="this.src='https://via.placeholder.com/400x300?text=No+Image'"
+                                >
+                            {% else %}
+                                <div class="w-full h-full flex items-center justify-center text-secondary-silver">
+                                    <span class="text-6xl">🚗</span>
+                                </div>
+                            {% endif %}
+                            
+                            <!-- Remove from Favorites Button -->
+                            <button 
+                                onclick="removeFavorite('{{ favorite.car_id }}')"
+                                class="absolute top-4 right-4 bg-red-600 text-white p-2 rounded-full hover:bg-red-700 transition-colors shadow-lg"
+                                title="Remove from favorites"
+                            >
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                                </svg>
+                            </button>
+                        </div>
+                        
+                        <!-- Car Info -->
+                        <div class="p-6">
+                            <h3 class="text-2xl font-bold text-white mb-2">
+                                {{ favorite.car_title|default:"Car" }}
+                            </h3>
+                            {% if favorite.car_price %}
+                                <p class="text-3xl font-bold text-accent-red mb-4">
+                                    ${{ favorite.car_price|floatformat:0|default:"N/A" }}
+                                </p>
+                            {% endif %}
+                            
+                            <p class="text-sm text-secondary-silver mb-4">
+                                Added {{ favorite.created_at|timesince }} ago
+                            </p>
+                            
+                            <!-- Action Buttons -->
+                            <div class="space-y-3">
+                                <a 
+                                    href="/car/{{ favorite.car_id }}/" 
+                                    class="block w-full bg-accent-red text-white text-center px-4 py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors"
+                                >
+                                    View Details
+                                </a>
+                                
+                                <div class="grid grid-cols-2 gap-2">
+                                    <a 
+                                        href="https://wa.me/14094998722?text={{ 'Hi, I am interested in ' }}{{ favorite.car_title|urlencode }}" 
+                                        target="_blank"
+                                        class="bg-green-600 text-white text-center px-4 py-2 rounded-lg text-sm font-semibold hover:bg-green-700 transition-colors"
+                                    >
+                                        📱 Contact 1
+                                    </a>
+                                    <a 
+                                        href="https://wa.me/12544501993?text={{ 'Hi, I am interested in ' }}{{ favorite.car_title|urlencode }}" 
+                                        target="_blank"
+                                        class="bg-green-600 text-white text-center px-4 py-2 rounded-lg text-sm font-semibold hover:bg-green-700 transition-colors"
+                                    >
+                                        📱 Contact 2
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+{% endif %}
+
+<script>
+async function removeFavorite(carId) {
+    if (!confirm('Remove this car from your favorites?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch('{% url "remove_from_favorites" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({ car_id: carId })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Remove the card from the page
+            const card = document.querySelector(`[data-favorite-id="${carId}"]`);
+            if (card) {
+                card.style.transition = 'opacity 0.3s';
+                card.style.opacity = '0';
+                setTimeout(() => {
+                    card.remove();
+                    
+                    // Check if there are no more favorites
+                    const remaining = document.querySelectorAll('[data-favorite-id]').length;
+                    if (remaining === 0) {
+                        window.location.reload();
+                    }
+                }, 300);
+            }
+            
+            // Show success message
+            showNotification('Removed from favorites', 'success');
+        } else {
+            showNotification('Failed to remove from favorites', 'error');
+        }
+    } catch (error) {
+        console.error('Error removing favorite:', error);
+        showNotification('An error occurred', 'error');
+    }
+}
+
+function showNotification(message, type) {
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 px-6 py-3 rounded-lg text-white font-semibold shadow-lg z-50 ${
+        type === 'success' ? 'bg-green-600' : 'bg-red-600'
+    }`;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.style.transition = 'opacity 0.3s';
+        notification.style.opacity = '0';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
+</script>
+{% endblock %}

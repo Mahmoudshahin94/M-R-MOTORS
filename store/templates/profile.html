@@ -1,0 +1,320 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Profile - M&R Motors{% endblock %}
+
+{% block content %}
+<section class="py-16 bg-primary-black min-h-screen">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Page Header -->
+        <div class="mb-8">
+            <h1 class="text-4xl md:text-5xl font-bold text-white mb-4">
+                My <span class="text-accent-red">Profile</span>
+            </h1>
+            <p class="text-xl text-secondary-silver">
+                Manage your account information
+            </p>
+        </div>
+
+        <!-- Display Messages -->
+        {% if messages %}
+            <div class="mb-6">
+                {% for message in messages %}
+                    <div class="p-4 rounded-lg mb-4 {% if message.tags == 'error' %}bg-red-900 border border-red-700 text-red-200{% else %}bg-green-900 border border-green-700 text-green-200{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Sidebar -->
+            <div class="lg:col-span-1">
+                <div class="bg-gray-900 rounded-lg p-6 border border-gray-800 sticky top-20">
+                    <!-- User Avatar -->
+                    <div class="text-center mb-6">
+                        {% if user.profile.profile_picture %}
+                            <img 
+                                src="{{ user.profile.profile_picture.url }}" 
+                                alt="{{ user.first_name }} {{ user.last_name }}"
+                                class="w-24 h-24 rounded-full object-cover mx-auto mb-4 border-2 border-accent-red"
+                            >
+                        {% else %}
+                            <div class="w-24 h-24 bg-accent-red rounded-full flex items-center justify-center text-white text-4xl font-bold mx-auto mb-4">
+                                {{ user.first_name.0|upper }}{{ user.last_name.0|upper }}
+                            </div>
+                        {% endif %}
+                        <h3 class="text-xl font-bold text-white">
+                            {{ user.first_name }} {{ user.last_name }}
+                        </h3>
+                        <p class="text-secondary-silver text-sm">
+                            @{{ user.username }}
+                        </p>
+                    </div>
+
+                    <!-- Quick Stats -->
+                    <div class="border-t border-gray-800 pt-6 space-y-3">
+                        <div class="flex justify-between text-sm">
+                            <span class="text-secondary-silver">Member Since:</span>
+                            <span class="text-white">{{ user.date_joined|date:"M Y" }}</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-secondary-silver">Email Status:</span>
+                            <span class="{% if user.profile.email_verified %}text-green-500{% else %}text-yellow-500{% endif %}">
+                                {% if user.profile.email_verified %}✓ Verified{% else %}⚠ Unverified{% endif %}
+                            </span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-secondary-silver">Favorite Cars:</span>
+                            <a href="{% url 'favorites' %}" class="text-accent-red hover:text-red-700 font-semibold">
+                                {{ user.profile.favorite_cars_count }}
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- Quick Link to Favorites -->
+                    <div class="border-t border-gray-800 pt-6 mt-6">
+                        <a 
+                            href="{% url 'favorites' %}"
+                            class="block w-full bg-accent-red text-white text-center py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors"
+                        >
+                            ❤️ My Favorites
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="lg:col-span-2 space-y-8">
+                <!-- Profile Picture -->
+                <div class="bg-gray-900 rounded-lg p-8 border border-gray-800">
+                    <h2 class="text-2xl font-bold text-white mb-6">Profile Picture</h2>
+                    
+                    <div class="flex items-center space-x-6">
+                        {% if user.profile.profile_picture %}
+                            <img 
+                                src="{{ user.profile.profile_picture.url }}" 
+                                alt="Profile Picture"
+                                class="w-20 h-20 rounded-full object-cover border-2 border-accent-red"
+                            >
+                        {% else %}
+                            <div class="w-20 h-20 bg-accent-red rounded-full flex items-center justify-center text-white text-3xl font-bold">
+                                {{ user.first_name.0|upper }}{{ user.last_name.0|upper }}
+                            </div>
+                        {% endif %}
+                        
+                        <div class="flex-1">
+                            <form method="POST" action="{% url 'update_profile' %}" enctype="multipart/form-data" id="profile-picture-form">
+                                {% csrf_token %}
+                                <label for="profile_picture" class="block text-sm font-medium text-secondary-silver mb-2">
+                                    Upload New Picture
+                                </label>
+                                <input 
+                                    type="file" 
+                                    id="profile_picture" 
+                                    name="profile_picture" 
+                                    accept="image/*"
+                                    class="block w-full text-sm text-secondary-silver file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-accent-red file:text-white hover:file:bg-red-700 transition-colors"
+                                    onchange="this.form.submit()"
+                                >
+                                <p class="mt-2 text-xs text-secondary-silver">JPG, PNG, GIF or WEBP. Max 5MB.</p>
+                            </form>
+                            
+                            {% if user.profile.profile_picture %}
+                                <form method="POST" action="{% url 'remove_profile_picture' %}" class="mt-3">
+                                    {% csrf_token %}
+                                    <button 
+                                        type="submit"
+                                        class="text-sm text-red-500 hover:text-red-700"
+                                        onclick="return confirm('Are you sure you want to remove your profile picture?')"
+                                    >
+                                        Remove Picture
+                                    </button>
+                                </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Personal Information -->
+                <div class="bg-gray-900 rounded-lg p-8 border border-gray-800">
+                    <h2 class="text-2xl font-bold text-white mb-6">Personal Information</h2>
+                    
+                    <form method="POST" action="{% url 'update_profile' %}" class="space-y-6">
+                        {% csrf_token %}
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="first_name" class="block text-sm font-medium text-secondary-silver mb-2">
+                                    First Name
+                                </label>
+                                <input 
+                                    id="first_name" 
+                                    name="first_name" 
+                                    type="text" 
+                                    value="{{ user.first_name }}"
+                                    required 
+                                    class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-accent-red transition-colors"
+                                >
+                            </div>
+
+                            <div>
+                                <label for="last_name" class="block text-sm font-medium text-secondary-silver mb-2">
+                                    Last Name
+                                </label>
+                                <input 
+                                    id="last_name" 
+                                    name="last_name" 
+                                    type="text" 
+                                    value="{{ user.last_name }}"
+                                    required 
+                                    class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-accent-red transition-colors"
+                                >
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="email" class="block text-sm font-medium text-secondary-silver mb-2">
+                                Email Address
+                            </label>
+                            <input 
+                                id="email" 
+                                name="email" 
+                                type="email" 
+                                value="{{ user.email }}"
+                                required 
+                                class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-accent-red transition-colors"
+                            >
+                            {% if not user.profile.email_verified %}
+                                <p class="mt-2 text-sm text-yellow-500">
+                                    ⚠ Email not verified. 
+                                    <a href="{% url 'resend_verification' %}" class="text-accent-red hover:underline">Resend verification email</a>
+                                </p>
+                            {% endif %}
+                        </div>
+
+                        <div>
+                            <label for="phone" class="block text-sm font-medium text-secondary-silver mb-2">
+                                Phone Number <span class="text-gray-600">(Optional)</span>
+                            </label>
+                            <input 
+                                id="phone" 
+                                name="phone" 
+                                type="tel" 
+                                value="{{ user.profile.phone_number }}"
+                                class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-accent-red transition-colors"
+                                placeholder="+1 (234) 567-8900"
+                            >
+                        </div>
+
+                        <button 
+                            type="submit" 
+                            class="w-full bg-accent-red text-white py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors"
+                        >
+                            Save Changes
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Change Password -->
+                <div class="bg-gray-900 rounded-lg p-8 border border-gray-800">
+                    <h2 class="text-2xl font-bold text-white mb-6">Change Password</h2>
+                    
+                    <form method="POST" action="{% url 'change_password' %}" class="space-y-6">
+                        {% csrf_token %}
+                        
+                        <div>
+                            <label for="current_password" class="block text-sm font-medium text-secondary-silver mb-2">
+                                Current Password
+                            </label>
+                            <input 
+                                id="current_password" 
+                                name="current_password" 
+                                type="password" 
+                                required 
+                                class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-accent-red transition-colors"
+                                placeholder="••••••••"
+                            >
+                        </div>
+
+                        <div>
+                            <label for="new_password" class="block text-sm font-medium text-secondary-silver mb-2">
+                                New Password
+                            </label>
+                            <input 
+                                id="new_password" 
+                                name="new_password" 
+                                type="password" 
+                                required 
+                                minlength="8"
+                                class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-accent-red transition-colors"
+                                placeholder="••••••••"
+                            >
+                            <p class="mt-1 text-xs text-secondary-silver">Must be at least 8 characters</p>
+                        </div>
+
+                        <div>
+                            <label for="confirm_new_password" class="block text-sm font-medium text-secondary-silver mb-2">
+                                Confirm New Password
+                            </label>
+                            <input 
+                                id="confirm_new_password" 
+                                name="confirm_new_password" 
+                                type="password" 
+                                required 
+                                minlength="8"
+                                class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-accent-red transition-colors"
+                                placeholder="••••••••"
+                            >
+                        </div>
+
+                        <button 
+                            type="submit" 
+                            class="w-full bg-accent-red text-white py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors"
+                        >
+                            Update Password
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Account Actions -->
+                <div class="bg-gray-900 rounded-lg p-8 border border-gray-800">
+                    <h2 class="text-2xl font-bold text-white mb-6">Account Actions</h2>
+                    
+                    <div class="space-y-4">
+                        <a 
+                            href="{% url 'logout' %}"
+                            class="block w-full bg-gray-800 text-white text-center py-3 rounded-lg font-semibold hover:bg-gray-700 transition-colors"
+                        >
+                            Logout
+                        </a>
+                        
+                        <button 
+                            onclick="if(confirm('Are you sure you want to delete your account? This action cannot be undone.')) window.location.href='{% url 'delete_account' %}'"
+                            class="block w-full bg-red-900 text-white text-center py-3 rounded-lg font-semibold hover:bg-red-800 transition-colors"
+                        >
+                            Delete Account
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    // Password confirmation validation
+    const newPassword = document.getElementById('new_password');
+    const confirmNewPassword = document.getElementById('confirm_new_password');
+
+    if (confirmNewPassword) {
+        confirmNewPassword.addEventListener('input', () => {
+            if (newPassword.value !== confirmNewPassword.value) {
+                confirmNewPassword.setCustomValidity('Passwords do not match');
+            } else {
+                confirmNewPassword.setCustomValidity('');
+            }
+        });
+    }
+</script>
+{% endblock %}

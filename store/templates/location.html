@@ -1,0 +1,240 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Location - M&R Motors{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<section class="bg-gradient-to-r from-primary-black to-gray-900 py-16 border-b border-gray-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h1 class="text-4xl md:text-5xl font-bold text-white mb-4">
+            Visit <span class="text-accent-red">M&R Motors</span>
+        </h1>
+        <p class="text-xl text-secondary-silver">
+            Come see our inventory in person and meet our team
+        </p>
+    </div>
+</section>
+
+<!-- Location Content -->
+<section class="py-16 bg-primary-black">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            <!-- Contact Information -->
+            <div class="space-y-8">
+                <!-- Contact Details -->
+                <div class="bg-gray-900 rounded-lg p-8 border border-gray-800">
+                    <h2 class="text-3xl font-bold text-white mb-6">Contact Information</h2>
+                    
+                    <div class="space-y-6">
+                        <!-- Phone Numbers -->
+                        <div class="flex items-start">
+                            <div class="text-accent-red text-3xl mr-4">📞</div>
+                            <div>
+                                <h3 class="text-lg font-semibold text-white mb-2">Phone Numbers</h3>
+                                <div class="space-y-2">
+                                    <a href="tel:+14094998722" class="block text-secondary-silver hover:text-white text-lg transition-colors">
+                                        (409) 499-8722
+                                    </a>
+                                    <a href="tel:+12544501993" class="block text-secondary-silver hover:text-white text-lg transition-colors">
+                                        (254) 450-1993
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Email -->
+                        <div class="flex items-start">
+                            <div class="text-accent-red text-3xl mr-4">✉️</div>
+                            <div>
+                                <h3 class="text-lg font-semibold text-white mb-2">Email</h3>
+                                <a href="mailto:mrtexasmotors@gmail.com" class="text-secondary-silver hover:text-white text-lg transition-colors break-all">
+                                    mrtexasmotors@gmail.com
+                                </a>
+                            </div>
+                        </div>
+                        
+                        <!-- Location -->
+                        <div class="flex items-start">
+                            <div class="text-accent-red text-3xl mr-4">📍</div>
+                            <div>
+                                <h3 class="text-lg font-semibold text-white mb-2">Address</h3>
+                                <p class="text-secondary-silver text-lg">
+                                    M&R Motors<br>
+                                    4423 Bellmead Dr<br>
+                                    Waco, TX 76705<br>
+                                    United States
+                                </p>
+                                <a 
+                                    href="https://www.google.com/maps/search/?api=1&query=M%26R+Motors%2C+4423+Bellmead+Dr%2C+Waco%2C+TX+76705" 
+                                    target="_blank"
+                                    class="text-accent-red hover:text-red-700 text-sm mt-2 inline-block"
+                                >
+                                    View on Google Maps →
+                                </a>
+                            </div>
+                        </div>
+                        
+                        <!-- Facebook -->
+                        <div class="flex items-start">
+                            <div class="text-accent-red text-3xl mr-4">📘</div>
+                            <div>
+                                <h3 class="text-lg font-semibold text-white mb-2">Follow Us</h3>
+                                <a href="https://www.facebook.com/p/Mr-motors-61567264663550/" 
+                                   target="_blank"
+                                   class="text-secondary-silver hover:text-white text-lg transition-colors">
+                                    Visit our Facebook Page
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Business Hours -->
+                <div class="bg-gray-900 rounded-lg p-8 border border-gray-800">
+                    <h2 class="text-3xl font-bold text-white mb-6">Business Hours</h2>
+                    
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center py-2 border-b border-gray-800">
+                            <span class="text-secondary-silver">Monday - Friday</span>
+                            <span class="text-white font-semibold">9:00 AM - 6:00 PM</span>
+                        </div>
+                        <div class="flex justify-between items-center py-2 border-b border-gray-800">
+                            <span class="text-secondary-silver">Saturday</span>
+                            <span class="text-white font-semibold">10:00 AM - 4:00 PM</span>
+                        </div>
+                        <div class="flex justify-between items-center py-2">
+                            <span class="text-secondary-silver">Sunday</span>
+                            <span class="text-white font-semibold">Closed</span>
+                        </div>
+                    </div>
+                    
+                    <p class="text-accent-red text-sm mt-6">
+                        * Please call ahead to schedule an appointment or confirm hours
+                    </p>
+                </div>
+                
+                <!-- Quick Actions -->
+                <div class="space-y-3">
+                    <h3 class="text-xl font-bold text-white mb-4">Quick Actions</h3>
+                    
+                    <a 
+                        href="https://wa.me/14094998722" 
+                        target="_blank"
+                        class="block w-full bg-green-600 text-white text-center px-6 py-4 rounded-lg text-lg font-semibold hover:bg-green-700 transition-colors"
+                    >
+                        📱 Chat on WhatsApp (Primary)
+                    </a>
+                    
+                    <a 
+                        href="https://wa.me/12544501993" 
+                        target="_blank"
+                        class="block w-full bg-green-600 text-white text-center px-6 py-4 rounded-lg text-lg font-semibold hover:bg-green-700 transition-colors"
+                    >
+                        📱 Chat on WhatsApp (Secondary)
+                    </a>
+                    
+                    <a 
+                        href="mailto:mrtexasmotors@gmail.com" 
+                        class="block w-full bg-accent-red text-white text-center px-6 py-4 rounded-lg text-lg font-semibold hover:bg-red-700 transition-colors"
+                    >
+                        ✉️ Send Email
+                    </a>
+                    
+                    <a 
+                        href="tel:+14094998722" 
+                        class="block w-full bg-gray-700 text-white text-center px-6 py-4 rounded-lg text-lg font-semibold hover:bg-gray-600 transition-colors"
+                    >
+                        📞 Call (409) 499-8722
+                    </a>
+                    
+                    <a 
+                        href="https://www.facebook.com/p/Mr-motors-61567264663550/" 
+                        target="_blank"
+                        class="block w-full bg-blue-600 text-white text-center px-6 py-4 rounded-lg text-lg font-semibold hover:bg-blue-700 transition-colors"
+                    >
+                        📘 Visit Facebook Page
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Google Map -->
+            <div>
+                <div class="bg-gray-900 rounded-lg p-8 border border-gray-800 h-full">
+                    <h2 class="text-3xl font-bold text-white mb-6">Find Us on the Map</h2>
+                    
+                    <div class="relative w-full h-96 lg:h-full min-h-[500px] bg-gray-800 rounded-lg overflow-hidden">
+                        <!-- Embedded Google Map -->
+                        <iframe 
+                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3383.8!2d-97.1654!3d31.5514!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2s4423%20Bellmead%20Dr%2C%20Waco%2C%20TX%2076705!5e0!3m2!1sen!2sus!4v1234567890"
+                            width="100%" 
+                            height="100%" 
+                            style="border:0; border-radius: 0.5rem;" 
+                            allowfullscreen="" 
+                            loading="lazy" 
+                            referrerpolicy="no-referrer-when-downgrade"
+                            class="absolute inset-0"
+                        ></iframe>
+                    </div>
+                    
+                    <p class="text-secondary-silver text-sm mt-4">
+                        💡 Tip: Click on the map to open in Google Maps for navigation directions!
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Directions Section -->
+<section class="py-16 bg-gray-900">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+            <h2 class="text-4xl font-bold text-white mb-4">Getting Here</h2>
+            <p class="text-xl text-secondary-silver">
+                We're conveniently located in Texas
+            </p>
+        </div>
+        
+        <div class="bg-gray-800 rounded-lg p-8 border border-gray-700">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="text-center">
+                    <div class="text-accent-red text-4xl mb-3">🚗</div>
+                    <h3 class="text-lg font-semibold text-white mb-2">By Car</h3>
+                    <p class="text-secondary-silver">
+                        Use GPS navigation with our Google Maps link above
+                    </p>
+                </div>
+                
+                <div class="text-center">
+                    <div class="text-accent-red text-4xl mb-3">🅿️</div>
+                    <h3 class="text-lg font-semibold text-white mb-2">Parking</h3>
+                    <p class="text-secondary-silver">
+                        Ample free parking available on-site
+                    </p>
+                </div>
+                
+                <div class="text-center">
+                    <div class="text-accent-red text-4xl mb-3">📱</div>
+                    <h3 class="text-lg font-semibold text-white mb-2">Questions?</h3>
+                    <p class="text-secondary-silver">
+                        Call us if you need help finding our location
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mt-12 text-center">
+            <p class="text-secondary-silver mb-6">
+                Planning to visit? We recommend calling ahead to ensure we have the vehicle you want to see in stock.
+            </p>
+            <a 
+                href="{% url 'inventory' %}" 
+                class="inline-block bg-accent-red text-white px-8 py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors"
+            >
+                Browse Our Inventory First
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}
