@@ -42,6 +42,11 @@ def admin_panel(request):
 
 def login_view(request):
     """Handle user login."""
+    # Check if database is available
+    if settings.DATABASES['default']['ENGINE'] == 'django.db.backends.dummy':
+        messages.error(request, 'Authentication is temporarily unavailable. Database configuration required.')
+        return render(request, 'login.html')
+    
     if request.user.is_authenticated:
         return redirect('home')
     
@@ -56,6 +61,9 @@ def login_view(request):
             username = user_obj.username
         except User.DoesNotExist:
             messages.error(request, 'Invalid email or password.')
+            return render(request, 'login.html')
+        except Exception as e:
+            messages.error(request, 'Login temporarily unavailable. Please try again later.')
             return render(request, 'login.html')
         
         # Authenticate user
