@@ -268,19 +268,17 @@
 
     async function handleGoogleAuth() {
         try {
-            if (!window.db) {
-                alert('Authentication system not initialized. Please refresh the page.');
+            // Check if Google OAuth client ID is configured
+            const clientId = '{{ settings.GOOGLE_OAUTH_CLIENT_ID }}';
+            if (!clientId) {
+                alert('Google Sign-In is not configured yet. Please use email/password to sign in.');
                 return;
             }
 
-            // Sign in with Google using Instant DB
-            await window.db.auth.signInWithPopup({ clientName: 'google' });
-            
-            // Redirect to home page after successful login
-            window.location.href = '{% url "home" %}';
+            alert('Google Sign-In will be available soon. Please use email/password for now.');
         } catch (error) {
             console.error('Google auth error:', error);
-            alert('Google sign in failed. Please try again or use email/password.');
+            alert('Google sign in is temporarily unavailable. Please use email/password.');
         }
     }
 

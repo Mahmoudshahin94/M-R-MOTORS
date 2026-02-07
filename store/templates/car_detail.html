@@ -36,10 +36,32 @@
     <section class="py-16 bg-primary-black">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                <!-- Car Image -->
+                <!-- Car Image Carousel -->
                 <div>
-                    <div id="car-image-container" class="rounded-lg overflow-hidden border border-gray-800 bg-gray-900">
+                    <div id="car-image-container" class="relative rounded-lg overflow-hidden border border-gray-800 bg-gray-900">
                         <img id="car-image" src="" alt="" class="w-full h-auto">
+                        
+                        <!-- Navigation Arrows -->
+                        <button id="prev-image" class="hidden absolute left-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-75 text-white p-3 rounded-full transition-all">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                            </svg>
+                        </button>
+                        <button id="next-image" class="hidden absolute right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-75 text-white p-3 rounded-full transition-all">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                            </svg>
+                        </button>
+                        
+                        <!-- Image Counter -->
+                        <div id="image-counter" class="hidden absolute bottom-4 right-4 bg-black bg-opacity-50 text-white px-3 py-1 rounded-full text-sm">
+                            <span id="current-image-index">1</span> / <span id="total-images">1</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Thumbnail Gallery -->
+                    <div id="thumbnail-gallery" class="hidden mt-4 grid grid-cols-4 gap-2">
+                        <!-- Thumbnails will be inserted here -->
                     </div>
                 </div>
                 
@@ -123,16 +145,21 @@
                 });
         }
         
+        let currentImageIndex = 0;
+        let carImages = [];
+        
         function renderCarDetails(car) {
             const price = car.price ? '$' + car.price.toLocaleString() : 'Contact for price';
-            const imageUrl = car.primary_image || 'https://via.placeholder.com/800x600?text=No+Image';
             const title = car.title || car.car_model || 'Car';
             const year = car.year || '';
             const description = car.description || 'No description available.';
             
+            // Get all car images
+            carImages = car.images && car.images.length > 0 ? 
+                car.images.map(img => img.url) : 
+                [car.primary_image || 'https://via.placeholder.com/800x600?text=No+Image'];
+            
             // Set car details
-            document.getElementById('car-image').src = imageUrl;
-            document.getElementById('car-image').alt = title;
             document.getElementById('car-title').textContent = title;
             document.getElementById('car-price').textContent = price;
             document.getElementById('car-description').textContent = description;
@@ -155,6 +182,9 @@
                 document.getElementById('car-specs').innerHTML = specsHtml;
             }
             
+            // Setup image carousel
+            setupImageCarousel(title);
+            
             // Set WhatsApp links
             const message = 'Hi, I\'m interested in the ' + title + (year ? ' (' + year + ')' : '');
             const encodedMessage = encodeURIComponent(message);
@@ -165,6 +195,84 @@
             document.title = title + ' - M&R Motors';
             
             console.log('Car details rendered successfully');
+        }
+        
+        function setupImageCarousel(title) {
+            const mainImage = document.getElementById('car-image');
+            const prevBtn = document.getElementById('prev-image');
+            const nextBtn = document.getElementById('next-image');
+            const counter = document.getElementById('image-counter');
+            const currentIndexEl = document.getElementById('current-image-index');
+            const totalImagesEl = document.getElementById('total-images');
+            const thumbnailGallery = document.getElementById('thumbnail-gallery');
+            
+            // Set initial image
+            updateImage(0, title);
+            
+            // Show controls if multiple images
+            if (carImages.length > 1) {
+                prevBtn.classList.remove('hidden');
+                nextBtn.classList.remove('hidden');
+                counter.classList.remove('hidden');
+                thumbnailGallery.classList.remove('hidden');
+                
+                totalImagesEl.textContent = carImages.length;
+                
+                // Create thumbnails
+                thumbnailGallery.innerHTML = '';
+                carImages.forEach((imageUrl, index) => {
+                    const thumb = document.createElement('div');
+                    thumb.className = 'cursor-pointer rounded-lg overflow-hidden border-2 transition-all ' + 
+                        (index === 0 ? 'border-accent-red' : 'border-gray-800 hover:border-gray-600');
+                    thumb.innerHTML = '<img src="' + imageUrl + '" alt="' + title + '" class="w-full h-20 object-cover">';
+                    thumb.onclick = () => updateImage(index, title);
+                    thumb.dataset.index = index;
+                    thumbnailGallery.appendChild(thumb);
+                });
+                
+                // Navigation button handlers
+                prevBtn.onclick = () => {
+                    currentImageIndex = (currentImageIndex - 1 + carImages.length) % carImages.length;
+                    updateImage(currentImageIndex, title);
+                };
+                
+                nextBtn.onclick = () => {
+                    currentImageIndex = (currentImageIndex + 1) % carImages.length;
+                    updateImage(currentImageIndex, title);
+                };
+                
+                // Keyboard navigation
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'ArrowLeft') prevBtn.click();
+                    if (e.key === 'ArrowRight') nextBtn.click();
+                });
+            } else {
+                // Hide controls for single image
+                prevBtn.classList.add('hidden');
+                nextBtn.classList.add('hidden');
+                counter.classList.add('hidden');
+                thumbnailGallery.classList.add('hidden');
+            }
+        }
+        
+        function updateImage(index, title) {
+            currentImageIndex = index;
+            const mainImage = document.getElementById('car-image');
+            const currentIndexEl = document.getElementById('current-image-index');
+            
+            mainImage.src = carImages[index];
+            mainImage.alt = title;
+            currentIndexEl.textContent = index + 1;
+            
+            // Update thumbnail borders
+            const thumbnails = document.querySelectorAll('#thumbnail-gallery > div');
+            thumbnails.forEach((thumb, i) => {
+                if (i === index) {
+                    thumb.className = 'cursor-pointer rounded-lg overflow-hidden border-2 border-accent-red transition-all';
+                } else {
+                    thumb.className = 'cursor-pointer rounded-lg overflow-hidden border-2 border-gray-800 hover:border-gray-600 transition-all';
+                }
+            });
         }
     })();
 </script>
