@@ -25,6 +25,8 @@
     }
   ],
   "env": {
-    "DJANGO_SETTINGS_MODULE": "mrmotors.settings"
+    "DJANGO_SETTINGS_MODULE": "mrmotors.settings",
+    "DEBUG": "False",
+    "ALLOWED_HOSTS": ".vercel.app,m-r-motors.vercel.app"
   }
 }
