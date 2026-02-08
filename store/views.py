@@ -101,8 +101,12 @@ def signup_view(request):
             return render(request, 'login.html')
         
         # Check if email already exists
-        if User.objects.filter(email=email).exists():
-            messages.error(request, 'An account with this email already exists.')
+        existing_user = User.objects.filter(email=email).first()
+        if existing_user:
+            if existing_user.profile.email_verified:
+                messages.error(request, '❌ This email address is already verified and in use. Please use a different email or log in to your existing account.')
+            else:
+                messages.error(request, '❌ An account with this email already exists. Please log in or use a different email.')
             return render(request, 'login.html')
         
         # Create username from email
@@ -212,16 +216,29 @@ def password_reset_confirm(request, token):
         return redirect('password_reset')
 
 def verify_email(request, token):
-    """Handle email verification via old token method (backwards compatibility)."""
+    """Handle email verification via token link."""
     try:
         profile = UserProfile.objects.get(verification_token=token)
+        
+        # Check if this email is already verified by another user
+        email_to_verify = profile.user.email
+        already_verified_user = User.objects.filter(
+            email=email_to_verify,
+            profile__email_verified=True
+        ).exclude(id=profile.user.id).first()
+        
+        if already_verified_user:
+            messages.error(request, f'❌ This email address is already verified and in use by another account. Please use a different email address.')
+            return redirect('profile') if request.user.is_authenticated else redirect('login')
+        
+        # Verify the email
         profile.verify_email()
         
-        messages.success(request, 'Your email has been verified successfully!')
-        return redirect('profile')
+        messages.success(request, '✅ Your email has been verified successfully!')
+        return redirect('profile') if request.user.is_authenticated else redirect('login')
         
     except UserProfile.DoesNotExist:
-        messages.error(request, 'Invalid verification link.')
+        messages.error(request, '❌ Invalid or expired verification link.')
         return redirect('home')
 
 @login_required
@@ -270,9 +287,10 @@ def resend_verification(request):
         try:
             token = user.profile.generate_verification_token()
             send_verification_email(user, token)
-            messages.success(request, 'Verification email has been sent to your inbox.')
+            messages.success(request, '📧 Verification email has been sent! Please check your inbox and click the link to verify.')
         except Exception as e:
-            messages.error(request, f'Failed to send verification email: {str(e)}')
+            logger.error(f'Failed to send verification email: {str(e)}')
+            messages.error(request, f'Failed to send verification email. Please try again later.')
         
         return redirect('profile')
     
@@ -410,8 +428,13 @@ def update_profile(request):
             
             # Check if email changed and if it's already taken
             if new_email != user.email:
-                if User.objects.filter(email=new_email).exclude(id=user.id).exists():
-                    messages.error(request, 'This email is already in use.')
+                # Check if email is already in use (including by verified users)
+                existing_user = User.objects.filter(email=new_email).exclude(id=user.id).first()
+                if existing_user:
+                    if existing_user.profile.email_verified:
+                        messages.error(request, '❌ This email address is already verified and in use by another account. Please use a different email.')
+                    else:
+                        messages.error(request, '❌ This email address is already in use by another account.')
                     return redirect('profile')
                 
                 user.email = new_email
@@ -422,10 +445,11 @@ def update_profile(request):
                 try:
                     token = user.profile.generate_verification_token()
                     send_verification_email(user, token)
+                    messages.warning(request, '⚠️ Email updated. Please check your new email to verify it.')
                 except Exception:
-                    pass  # Email sending is optional
-                
-                messages.warning(request, 'Email updated. Please check your new email to verify it.')
+                    messages.warning(request, '⚠️ Email updated but failed to send verification email. You can request a new one from your profile.')
+            else:
+                messages.success(request, '✅ Profile updated successfully!')
             
             user.save()
             
@@ -435,14 +459,20 @@ def update_profile(request):
                 user.profile.phone_number = phone
                 user.profile.phone_verified = False  # Mark as unverified if changed
                 user.profile.save()
-                messages.warning(request, 'Profile updated! Please verify your new phone number.')
+                
+                # Only show phone warning if email didn't change
+                if new_email == user.email:
+                    messages.success(request, '✅ Profile updated! Please verify your new phone number.')
             else:
                 user.profile.phone_number = phone
                 user.profile.save()
-                messages.success(request, 'Profile updated successfully!')
+                
+                # Only show success if email didn't change
+                if new_email == user.email:
+                    messages.success(request, '✅ Profile updated successfully!')
             
         except Exception as e:
-            messages.error(request, f'Error updating profile: {str(e)}')
+            messages.error(request, f'❌ Error updating profile: {str(e)}')
             return redirect('profile')
     
     return redirect('profile')
