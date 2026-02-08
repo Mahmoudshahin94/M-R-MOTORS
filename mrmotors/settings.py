@@ -58,11 +58,6 @@ INSTALLED_APPS = [
 # Required for django-allauth
 SITE_ID = 1
 
-# Site domain configuration
-if DATABASE_URL:
-    # For production, we'll update the site domain programmatically
-    pass
-
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
