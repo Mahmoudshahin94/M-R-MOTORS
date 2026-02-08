@@ -217,10 +217,12 @@ ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_AUTHENTICATION_METHOD = 'email'
 ACCOUNT_EMAIL_VERIFICATION = 'none'  # Disable email verification for social login
+ACCOUNT_LOGIN_ON_GET = False
 SOCIALACCOUNT_AUTO_SIGNUP = True
 SOCIALACCOUNT_EMAIL_REQUIRED = True
+SOCIALACCOUNT_STORE_TOKENS = False
 
-# Google OAuth Configuration
+# Google OAuth Configuration - Use settings-based configuration for serverless
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
         'APP': {
@@ -234,9 +236,13 @@ SOCIALACCOUNT_PROVIDERS = {
         ],
         'AUTH_PARAMS': {
             'access_type': 'online',
-        }
+        },
+        'VERIFIED_EMAIL': True,
     }
 }
+
+# Use settings-based providers instead of database
+SOCIALACCOUNT_ONLY = True
 
 # Email Configuration
 # For development, we'll use console backend (prints emails to console)
