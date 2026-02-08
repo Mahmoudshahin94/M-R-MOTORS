@@ -10,13 +10,13 @@ def user_profile_picture_path(instance, filename):
     """Generate upload path for user profile pictures."""
     ext = filename.split('.')[-1]
     filename = f'profile_{instance.user.id}.{ext}'
-    return os.path.join('profile_pictures', filename)
+    return f'profile_pictures/{filename}'
 
 def car_image_path(instance, filename):
     """Generate upload path for car images."""
     ext = filename.split('.')[-1]
     unique_filename = f'{uuid.uuid4().hex}.{ext}'
-    return os.path.join('car_images', unique_filename)
+    return f'car_images/{unique_filename}'
 
 class UserProfile(models.Model):
     """Extended user profile with additional fields."""

@@ -41,8 +41,8 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'django.contrib.staticfiles',
     'cloudinary_storage',
+    'django.contrib.staticfiles',
     'cloudinary',
     'store',
 ]
@@ -142,19 +142,31 @@ STATICFILES_DIRS = [
     BASE_DIR / 'store' / 'static',
 ]
 
-# Media files (User uploads)
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+# Cloudinary Configuration (must come before MEDIA settings)
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
 
-# Cloudinary Configuration
 CLOUDINARY_STORAGE = {
     'CLOUD_NAME': os.getenv('CLOUDINARY_CLOUD_NAME', 'dvgjjnbyb'),
     'API_KEY': os.getenv('CLOUDINARY_API_KEY', '694911693255957'),
     'API_SECRET': os.getenv('CLOUDINARY_API_SECRET', 'ftNEjzT7JZkEQSCHPzn-0E2hGqk'),
 }
 
+# Initialize Cloudinary
+cloudinary.config(
+    cloud_name=CLOUDINARY_STORAGE['CLOUD_NAME'],
+    api_key=CLOUDINARY_STORAGE['API_KEY'],
+    api_secret=CLOUDINARY_STORAGE['API_SECRET'],
+    secure=True
+)
+
 # Always use Cloudinary for media storage (required for Vercel)
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
+# Media files (User uploads)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 # Instant DB Configuration
 INSTANTDB_APP_ID = os.getenv('INSTANTDB_APP_ID', 'a169709c-d938-4489-b196-63dcc30a53ca')
