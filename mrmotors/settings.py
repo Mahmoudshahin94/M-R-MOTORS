@@ -153,9 +153,8 @@ CLOUDINARY_STORAGE = {
     'API_SECRET': os.getenv('CLOUDINARY_API_SECRET', 'ftNEjzT7JZkEQSCHPzn-0E2hGqk'),
 }
 
-# Use Cloudinary for media storage in production
-if os.getenv('DATABASE_URL'):  # If we have a production database, use Cloudinary
-    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+# Always use Cloudinary for media storage (required for Vercel)
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 # Instant DB Configuration
 INSTANTDB_APP_ID = os.getenv('INSTANTDB_APP_ID', 'a169709c-d938-4489-b196-63dcc30a53ca')
