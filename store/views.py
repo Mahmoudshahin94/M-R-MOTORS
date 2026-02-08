@@ -617,8 +617,9 @@ def add_car_view(request):
 
 
 def get_cars_api(request):
-    """Get all cars as JSON."""
-    cars = Car.objects.all()
+    """Get all cars as JSON. Only shows non-hidden cars to public."""
+    # Filter out hidden cars from public view
+    cars = Car.objects.filter(is_hidden=False)
     cars_data = []
     
     for car in cars:
@@ -633,6 +634,7 @@ def get_cars_api(request):
             'mileage': car.mileage,
             'condition': car.condition,
             'is_sold': car.is_sold,
+            'is_hidden': car.is_hidden,
             'images': images,
             'primary_image': car.primary_image.image.url if car.primary_image else None,
             'created_at': car.created_at.isoformat(),
@@ -726,6 +728,25 @@ def toggle_car_sold_status(request, car_id):
         status = 'sold' if car.is_sold else 'available'
         messages.success(request, f'Car marked as {status}!')
         return JsonResponse({'success': True, 'is_sold': car.is_sold})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=400)
+
+
+@login_required
+@require_POST
+def toggle_car_hidden_status(request, car_id):
+    """Toggle the hidden status of a car."""
+    if request.user.email not in settings.ADMIN_EMAILS:
+        return JsonResponse({'success': False, 'error': 'Permission denied'}, status=403)
+    
+    try:
+        car = get_object_or_404(Car, id=car_id)
+        car.is_hidden = not car.is_hidden
+        car.save()
+        
+        status = 'hidden' if car.is_hidden else 'visible'
+        messages.success(request, f'Car is now {status} in the inventory!')
+        return JsonResponse({'success': True, 'is_hidden': car.is_hidden})
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=400)
 

@@ -49,6 +49,7 @@ urlpatterns = [
     path('api/cars/<int:car_id>/update/', views.update_car_view, name='update_car'),
     path('api/cars/<int:car_id>/delete/', views.delete_car_view, name='delete_car'),
     path('api/cars/<int:car_id>/toggle-sold/', views.toggle_car_sold_status, name='toggle_car_sold'),
+    path('api/cars/<int:car_id>/toggle-hidden/', views.toggle_car_hidden_status, name='toggle_car_hidden'),
     path('api/cars/image/<int:image_id>/delete/', views.delete_car_image_view, name='delete_car_image'),
     
     # Admin User Management

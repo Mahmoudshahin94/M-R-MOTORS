@@ -410,13 +410,19 @@
                                     onclick="toggleSoldStatus(${car.id}, '${car.title.replace(/'/g, "\\'")}', ${car.is_sold})"
                                     class="w-full ${car.is_sold ? 'bg-green-600 hover:bg-green-700' : 'bg-yellow-600 hover:bg-yellow-700'} text-white px-4 py-2 rounded text-sm font-semibold"
                                 >
-                                    ${car.is_sold ? 'Mark as Available' : 'Mark as Sold'}
+                                    ${car.is_sold ? '✓ Mark as Available' : '🏷️ Mark as Sold'}
+                                </button>
+                                <button 
+                                    onclick="toggleHiddenStatus(${car.id}, '${car.title.replace(/'/g, "\\'")}', ${car.is_hidden || false})"
+                                    class="w-full ${car.is_hidden ? 'bg-purple-600 hover:bg-purple-700' : 'bg-gray-600 hover:bg-gray-700'} text-white px-4 py-2 rounded text-sm font-semibold"
+                                >
+                                    ${car.is_hidden ? '👁️ Unhide from Inventory' : '🙈 Hide from Inventory'}
                                 </button>
                                 <button 
                                     onclick="deleteCar(${car.id}, '${car.title.replace(/'/g, "\\'")}')"
                                     class="w-full bg-red-600 text-white px-4 py-2 rounded text-sm font-semibold hover:bg-red-700"
                                 >
-                                    Delete
+                                    🗑️ Delete
                                 </button>
                             </div>
                         </div>
@@ -510,6 +516,32 @@
             }
         } catch (error) {
             alert('Error updating status: ' + error.message);
+        }
+    }
+    
+    // Toggle hidden status
+    async function toggleHiddenStatus(carId, carTitle, currentStatus) {
+        const newStatus = currentStatus ? 'visible' : 'hidden';
+        const action = currentStatus ? 'unhide and show' : 'hide';
+        if (!confirm(`Do you want to ${action} "${carTitle}" from the public inventory?`)) return;
+        
+        try {
+            const response = await fetch(`/api/cars/${carId}/toggle-hidden/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                }
+            });
+            
+            const result = await response.json();
+            if (result.success) {
+                alert(`Car is now ${newStatus} in the inventory!`);
+                loadInventory();
+            } else {
+                alert('Error: ' + result.error);
+            }
+        } catch (error) {
+            alert('Error updating visibility: ' + error.message);
         }
     }
     

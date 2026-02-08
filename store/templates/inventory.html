@@ -139,18 +139,15 @@
                 
                 // Load favorites first, then render
                 loadUserFavorites(function() {
-                    // Filter out sold cars and sort by created_at (newest first)
-                    const availableCars = cars.filter(car => !car.is_sold);
-                    console.log('Available cars (not sold):', availableCars.length);
-                    
-                    const sortedCars = availableCars.sort(function(a, b) {
+                    // Sort by created_at (newest first) - show all cars including sold ones
+                    const sortedCars = cars.sort(function(a, b) {
                         const dateA = new Date(a.created_at);
                         const dateB = new Date(b.created_at);
                         return dateB - dateA;
                     });
                     
                     if (sortedCars.length === 0) {
-                        console.log('No available cars to display');
+                        console.log('No cars to display');
                         emptyState.classList.remove('hidden');
                         carsGrid.classList.add('hidden');
                         return;
@@ -190,12 +187,21 @@
                     '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>' +
                     '</svg></button>' : '';
                 
+                // SOLD badge overlay for sold cars
+                const soldBadgeHtml = car.is_sold ? 
+                    '<div class="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center z-10">' +
+                    '<div class="transform -rotate-12">' +
+                    '<div class="bg-accent-red text-white px-8 py-4 rounded-lg shadow-2xl border-4 border-white">' +
+                    '<span class="text-4xl font-black tracking-wider">SOLD</span>' +
+                    '</div></div></div>' : '';
+                
                 return '<a href="/car/' + car.id + '/" class="block group">' +
-                    '<div class="bg-gray-900 rounded-lg overflow-hidden border border-gray-800 group-hover:border-accent-red transform group-hover:scale-105 transition-all cursor-pointer">' +
+                    '<div class="bg-gray-900 rounded-lg overflow-hidden border border-gray-800 group-hover:border-accent-red transform group-hover:scale-105 transition-all cursor-pointer ' + (car.is_sold ? 'opacity-75' : '') + '">' +
                     '<div class="relative h-64 bg-gray-800 overflow-hidden">' +
                     '<img src="' + imageUrl + '" alt="' + title + '" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" onerror="this.src=\'https://via.placeholder.com/400x300?text=No+Image\'">' +
+                    soldBadgeHtml +
                     favoriteButtonHtml +
-                    (year ? '<div class="absolute top-4 right-4 bg-accent-red text-white px-3 py-1 rounded-full text-sm font-semibold shadow-lg">' + year + '</div>' : '') +
+                    (year ? '<div class="absolute top-4 right-4 bg-accent-red text-white px-3 py-1 rounded-full text-sm font-semibold shadow-lg z-20">' + year + '</div>' : '') +
                     '</div>' +
                     '<div class="p-6">' +
                     '<h3 class="text-2xl font-bold text-white mb-2 group-hover:text-accent-red transition-colors">' + title + '</h3>' +
