@@ -15,12 +15,5 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mrmotors.settings')
 
 application = get_wsgi_application()
 
-# Initialize site configuration for django-allauth
-try:
-    from mrmotors.site_config import init_site
-    init_site()
-except Exception:
-    pass
-
 # Vercel expects 'app' variable
 app = application
