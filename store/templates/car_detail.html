@@ -246,6 +246,41 @@
                     if (e.key === 'ArrowLeft') prevBtn.click();
                     if (e.key === 'ArrowRight') nextBtn.click();
                 });
+                
+                // Touch/Swipe support
+                const imageContainer = document.getElementById('car-image-container');
+                let touchStartX = 0;
+                let touchEndX = 0;
+                let touchStartY = 0;
+                let touchEndY = 0;
+                
+                imageContainer.addEventListener('touchstart', (e) => {
+                    touchStartX = e.changedTouches[0].screenX;
+                    touchStartY = e.changedTouches[0].screenY;
+                }, { passive: true });
+                
+                imageContainer.addEventListener('touchend', (e) => {
+                    touchEndX = e.changedTouches[0].screenX;
+                    touchEndY = e.changedTouches[0].screenY;
+                    handleSwipe();
+                }, { passive: true });
+                
+                function handleSwipe() {
+                    const swipeThreshold = 50; // minimum distance for a swipe
+                    const horizontalSwipe = Math.abs(touchEndX - touchStartX);
+                    const verticalSwipe = Math.abs(touchEndY - touchStartY);
+                    
+                    // Only trigger if horizontal swipe is dominant
+                    if (horizontalSwipe > verticalSwipe && horizontalSwipe > swipeThreshold) {
+                        if (touchEndX < touchStartX) {
+                            // Swipe left - next image
+                            nextBtn.click();
+                        } else if (touchEndX > touchStartX) {
+                            // Swipe right - previous image
+                            prevBtn.click();
+                        }
+                    }
+                }
             } else {
                 // Hide controls for single image
                 prevBtn.classList.add('hidden');
