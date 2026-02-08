@@ -287,7 +287,7 @@ def resend_verification(request):
         try:
             token = user.profile.generate_verification_token()
             send_verification_email(user, token)
-            messages.success(request, '📧 Verification email has been sent! Please check your inbox and click the link to verify.')
+            messages.success(request, '✅ Verification email has been sent successfully! Please check your inbox and click the link to verify.')
         except Exception as e:
             logger.error(f'Failed to send verification email: {str(e)}')
             messages.error(request, f'Failed to send verification email. Please try again later.')
@@ -448,8 +448,6 @@ def update_profile(request):
                     messages.warning(request, '⚠️ Email updated. Please check your new email to verify it.')
                 except Exception:
                     messages.warning(request, '⚠️ Email updated but failed to send verification email. You can request a new one from your profile.')
-            else:
-                messages.success(request, '✅ Profile updated successfully!')
             
             user.save()
             
@@ -467,8 +465,8 @@ def update_profile(request):
                 user.profile.phone_number = phone
                 user.profile.save()
                 
-                # Only show success if email didn't change
-                if new_email == user.email:
+                # Only show success if email and phone didn't change
+                if new_email == user.email and phone == old_phone:
                     messages.success(request, '✅ Profile updated successfully!')
             
         except Exception as e:
