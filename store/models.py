@@ -2,9 +2,12 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.utils import timezone
+from datetime import timedelta
 import secrets
 import os
 import uuid
+import random
 
 def user_profile_picture_path(instance, filename):
     """Generate upload path for user profile pictures."""
@@ -51,8 +54,6 @@ class UserProfile(models.Model):
     
     def generate_verification_code(self):
         """Generate a 6-digit verification code."""
-        from django.utils import timezone
-        import random
         self.verification_code = ''.join([str(random.randint(0, 9)) for _ in range(6)])
         self.verification_code_created = timezone.now()
         self.save()
@@ -64,15 +65,11 @@ class UserProfile(models.Model):
             return False
         if self.verification_code != code:
             return False
-        from django.utils import timezone
-        from datetime import timedelta
         expiry = self.verification_code_created + timedelta(minutes=10)
         return timezone.now() < expiry
     
     def generate_phone_verification_code(self):
         """Generate a 6-digit phone verification code."""
-        from django.utils import timezone
-        import random
         self.phone_verification_code = ''.join([str(random.randint(0, 9)) for _ in range(6)])
         self.phone_verification_code_created = timezone.now()
         self.save()
@@ -84,14 +81,11 @@ class UserProfile(models.Model):
             return False
         if self.phone_verification_code != code:
             return False
-        from django.utils import timezone
-        from datetime import timedelta
         expiry = self.phone_verification_code_created + timedelta(minutes=10)
         return timezone.now() < expiry
 
     def generate_reset_token(self):
         """Generate a unique password reset token."""
-        from django.utils import timezone
         self.reset_token = secrets.token_urlsafe(32)
         self.reset_token_created = timezone.now()
         self.save()
@@ -117,8 +111,6 @@ class UserProfile(models.Model):
         """Check if reset token is still valid (24 hours)."""
         if not self.reset_token or not self.reset_token_created:
             return False
-        from django.utils import timezone
-        from datetime import timedelta
         expiry = self.reset_token_created + timedelta(hours=24)
         return timezone.now() < expiry
     
