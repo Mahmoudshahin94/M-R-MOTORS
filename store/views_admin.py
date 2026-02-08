@@ -78,6 +78,27 @@ def fix_database_schema(request):
                 except Exception as e:
                     results.append(f"✗ {table}.{column}: {str(e)}")
             
+            # Check for missing is_hidden column and add it
+            cursor.execute("""
+                SELECT column_name 
+                FROM information_schema.columns 
+                WHERE table_schema = 'public'
+                AND table_name = 'store_car'
+                AND column_name = 'is_hidden'
+            """)
+            has_hidden = cursor.fetchone()
+            
+            if not has_hidden:
+                try:
+                    cursor.execute(
+                        "ALTER TABLE store_car ADD COLUMN is_hidden BOOLEAN DEFAULT FALSE NOT NULL;"
+                    )
+                    results.append("✓ Added is_hidden column to store_car table")
+                except Exception as e:
+                    results.append(f"✗ Adding is_hidden column: {str(e)}")
+            else:
+                results.append("✓ is_hidden column already exists")
+            
             # Check after
             cursor.execute("""
                 SELECT table_name, column_name, character_maximum_length 
