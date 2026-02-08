@@ -99,6 +99,36 @@ def fix_database_schema(request):
             else:
                 results.append("✓ is_hidden column already exists")
             
+            # Add verification fields to UserProfile
+            verification_fields = [
+                ('verification_code', 'VARCHAR(6)'),
+                ('verification_code_created', 'TIMESTAMP'),
+                ('phone_verified', 'BOOLEAN DEFAULT FALSE NOT NULL'),
+                ('phone_verification_code', 'VARCHAR(6)'),
+                ('phone_verification_code_created', 'TIMESTAMP'),
+            ]
+            
+            for field_name, field_type in verification_fields:
+                cursor.execute("""
+                    SELECT column_name 
+                    FROM information_schema.columns 
+                    WHERE table_schema = 'public'
+                    AND table_name = 'store_userprofile'
+                    AND column_name = %s
+                """, [field_name])
+                field_exists = cursor.fetchone()
+                
+                if not field_exists:
+                    try:
+                        cursor.execute(
+                            f"ALTER TABLE store_userprofile ADD COLUMN {field_name} {field_type};"
+                        )
+                        results.append(f"✓ Added {field_name} column to store_userprofile table")
+                    except Exception as e:
+                        results.append(f"✗ Adding {field_name} column: {str(e)}")
+                else:
+                    results.append(f"✓ {field_name} column already exists")
+            
             # Check after
             cursor.execute("""
                 SELECT table_name, column_name, character_maximum_length 
