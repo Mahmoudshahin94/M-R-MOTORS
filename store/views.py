@@ -71,7 +71,7 @@ def login_view(request):
         user = authenticate(request, username=username, password=password)
         
         if user is not None:
-            auth_login(request, user)
+            auth_login(request, user, backend='django.contrib.auth.backends.ModelBackend')
             
             # Set session expiry
             if not remember_me:
