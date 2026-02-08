@@ -29,8 +29,8 @@ class UserProfile(models.Model):
         help_text="Upload a profile picture (JPG, PNG, max 5MB)"
     )
     email_verified = models.BooleanField(default=False)
-    verification_token = models.CharField(max_length=100, blank=True, null=True)
-    reset_token = models.CharField(max_length=100, blank=True, null=True)
+    verification_token = models.CharField(max_length=255, blank=True, null=True)
+    reset_token = models.CharField(max_length=255, blank=True, null=True)
     reset_token_created = models.DateTimeField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -117,7 +117,7 @@ class CarImage(models.Model):
 class FavoriteCar(models.Model):
     """Track user's favorite cars."""
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='favorite_cars')
-    car_id = models.CharField(max_length=100, help_text="InstantDB car post ID")
+    car_id = models.CharField(max_length=255, help_text="InstantDB car post ID")
     car_title = models.CharField(max_length=255, blank=True, null=True)
     car_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     car_image_url = models.URLField(blank=True, null=True)
