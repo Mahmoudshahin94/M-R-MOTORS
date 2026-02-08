@@ -139,8 +139,8 @@ def signup_view(request):
                 from store.models import UserProfile
                 UserProfile.objects.create(user=user)
             
-            # Log the user in
-            auth_login(request, user)
+            # Log the user in with the correct backend
+            auth_login(request, user, backend='django.contrib.auth.backends.ModelBackend')
             
             # Try to send verification email (don't fail signup if this fails)
             email_sent = False
