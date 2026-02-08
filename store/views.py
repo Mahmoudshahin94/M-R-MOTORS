@@ -134,6 +134,11 @@ def signup_view(request):
                 last_name=last_name
             )
             
+            # Ensure user has a profile (should be auto-created by signal, but just in case)
+            if not hasattr(user, 'profile'):
+                from store.models import UserProfile
+                UserProfile.objects.create(user=user)
+            
             # Log the user in
             auth_login(request, user)
             
@@ -145,18 +150,22 @@ def signup_view(request):
                 email_sent = True
             except Exception as email_error:
                 logger.error(f"Failed to send verification email during signup: {email_error}")
+                import traceback
+                logger.error(f"Email error traceback: {traceback.format_exc()}")
                 # Continue with signup even if email fails
             
             # Show appropriate success message
             if email_sent:
                 messages.success(request, f'✅ Welcome to M&R Motors, {first_name}! Please check your email to verify your account.')
             else:
-                messages.warning(request, f'✅ Welcome to M&R Motors, {first_name}! You can send a verification email from your profile.')
+                messages.success(request, f'✅ Welcome to M&R Motors, {first_name}! You can send a verification email from your profile.')
             
             return redirect('profile')
             
         except Exception as e:
             logger.error(f"Error during user creation: {e}")
+            import traceback
+            logger.error(f"Signup error traceback: {traceback.format_exc()}")
             messages.error(request, '❌ An error occurred during signup. Please try again.')
             return render(request, 'login.html')
     
