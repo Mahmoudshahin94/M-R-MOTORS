@@ -9,3 +9,4 @@ django-allauth==65.3.0
 PyJWT==2.9.0
 cryptography==44.0.0
 requests==2.32.3
+twilio==9.0.4

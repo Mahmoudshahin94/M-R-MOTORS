@@ -257,3 +257,8 @@ DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'noreply@mrmotors.com')
 
 # Site URL for email links
 SITE_URL = os.getenv('SITE_URL', 'http://127.0.0.1:8000')
+
+# Twilio Configuration for SMS
+TWILIO_ACCOUNT_SID = os.getenv('TWILIO_ACCOUNT_SID', '')
+TWILIO_AUTH_TOKEN = os.getenv('TWILIO_AUTH_TOKEN', '')
+TWILIO_PHONE_NUMBER = os.getenv('TWILIO_PHONE_NUMBER', '')

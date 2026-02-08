@@ -30,6 +30,11 @@ class UserProfile(models.Model):
     )
     email_verified = models.BooleanField(default=False)
     verification_token = models.CharField(max_length=255, blank=True, null=True)
+    verification_code = models.CharField(max_length=6, blank=True, null=True)
+    verification_code_created = models.DateTimeField(blank=True, null=True)
+    phone_verified = models.BooleanField(default=False)
+    phone_verification_code = models.CharField(max_length=6, blank=True, null=True)
+    phone_verification_code_created = models.DateTimeField(blank=True, null=True)
     reset_token = models.CharField(max_length=255, blank=True, null=True)
     reset_token_created = models.DateTimeField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -43,6 +48,46 @@ class UserProfile(models.Model):
         self.verification_token = secrets.token_urlsafe(32)
         self.save()
         return self.verification_token
+    
+    def generate_verification_code(self):
+        """Generate a 6-digit verification code."""
+        from django.utils import timezone
+        import random
+        self.verification_code = ''.join([str(random.randint(0, 9)) for _ in range(6)])
+        self.verification_code_created = timezone.now()
+        self.save()
+        return self.verification_code
+    
+    def is_verification_code_valid(self, code):
+        """Check if verification code is valid and not expired (10 minutes)."""
+        if not self.verification_code or not self.verification_code_created:
+            return False
+        if self.verification_code != code:
+            return False
+        from django.utils import timezone
+        from datetime import timedelta
+        expiry = self.verification_code_created + timedelta(minutes=10)
+        return timezone.now() < expiry
+    
+    def generate_phone_verification_code(self):
+        """Generate a 6-digit phone verification code."""
+        from django.utils import timezone
+        import random
+        self.phone_verification_code = ''.join([str(random.randint(0, 9)) for _ in range(6)])
+        self.phone_verification_code_created = timezone.now()
+        self.save()
+        return self.phone_verification_code
+    
+    def is_phone_verification_code_valid(self, code):
+        """Check if phone verification code is valid and not expired (10 minutes)."""
+        if not self.phone_verification_code or not self.phone_verification_code_created:
+            return False
+        if self.phone_verification_code != code:
+            return False
+        from django.utils import timezone
+        from datetime import timedelta
+        expiry = self.phone_verification_code_created + timedelta(minutes=10)
+        return timezone.now() < expiry
 
     def generate_reset_token(self):
         """Generate a unique password reset token."""
@@ -56,6 +101,15 @@ class UserProfile(models.Model):
         """Mark email as verified."""
         self.email_verified = True
         self.verification_token = None
+        self.verification_code = None
+        self.verification_code_created = None
+        self.save()
+    
+    def verify_phone(self):
+        """Mark phone as verified."""
+        self.phone_verified = True
+        self.phone_verification_code = None
+        self.phone_verification_code_created = None
         self.save()
 
     @property

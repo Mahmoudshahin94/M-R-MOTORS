@@ -74,12 +74,6 @@
         const title = car.title || car.car_model || 'Car';
         const year = car.year || '';
         
-        // WhatsApp message
-        const message = 'Hi, I\'m interested in the ' + title + (year ? ' (' + year + ')' : '');
-        const encodedMessage = encodeURIComponent(message);
-        const whatsapp1 = 'https://wa.me/14094998722?text=' + encodedMessage;
-        const whatsapp2 = 'https://wa.me/12544501993?text=' + encodedMessage;
-        
         // Remove button
         const removeButtonHtml = 
             '<button ' +
@@ -119,10 +113,7 @@
             '<div class="p-6">' +
             '<h3 class="text-2xl font-bold text-white mb-2 ' + (car.is_sold ? '' : 'group-hover:text-accent-red transition-colors') + '">' + title + '</h3>' +
             '<p class="text-3xl font-bold text-accent-red mb-4">' + price + '</p>' +
-            '<div class="space-y-2 mt-4">' +
-            '<a href="' + whatsapp1 + '" target="_blank" onclick="event.stopPropagation(); event.preventDefault(); window.open(this.href, \'_blank\');" class="block w-full bg-green-600 text-white text-center px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-green-700 hover:shadow-lg transition-all" style="pointer-events: auto;">📱 WhatsApp: (409) 499-8722</a>' +
-            '<a href="' + whatsapp2 + '" target="_blank" onclick="event.stopPropagation(); event.preventDefault(); window.open(this.href, \'_blank\');" class="block w-full bg-green-600 text-white text-center px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-green-700 hover:shadow-lg transition-all" style="pointer-events: auto;">📱 WhatsApp: (254) 450-1993</a>' +
-            '</div></div></div>' + cardWrapperEnd;
+            '</div></div>' + cardWrapperEnd;
     }
 })();
 

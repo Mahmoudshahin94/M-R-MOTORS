@@ -27,7 +27,12 @@ urlpatterns = [
     # Email Verification
     path('verify-email/<str:token>/', views.verify_email, name='verify_email'),
     path('verify-email-sent/<str:email>/', views.verify_email_sent, name='verify_email_sent'),
+    path('verify-email-prompt/', views.verify_email_prompt, name='verify_email_prompt'),
     path('resend-verification/', views.resend_verification, name='resend_verification'),
+    
+    # Phone Verification
+    path('verify-phone/', views.verify_phone_prompt, name='verify_phone_prompt'),
+    path('send-phone-verification/', views.send_phone_verification, name='send_phone_verification'),
     
     # User Profile
     path('profile/', views.profile_view, name='profile'),

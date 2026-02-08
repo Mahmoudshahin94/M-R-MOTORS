@@ -66,6 +66,16 @@
                                 <span class="text-yellow-500">⚠ Unverified</span>
                             {% endif %}
                         </div>
+                        {% if user.profile.phone_number %}
+                        <div class="flex justify-between text-sm">
+                            <span class="text-secondary-silver">Phone Status:</span>
+                            {% if user.profile.phone_verified %}
+                                <span class="text-green-500">✓ Verified</span>
+                            {% else %}
+                                <span class="text-yellow-500">⚠ Unverified</span>
+                            {% endif %}
+                        </div>
+                        {% endif %}
                         <div class="flex justify-between text-sm">
                             <span class="text-secondary-silver">Favorite Cars:</span>
                             <a href="{% url 'favorites' %}" class="text-accent-red hover:text-red-700 font-semibold">
@@ -195,10 +205,14 @@
                                     </p>
                                 {% else %}
                                     <!-- Regular user needs email verification -->
-                                    <p class="mt-2 text-sm text-yellow-500">
-                                        ⚠ Email not verified. 
-                                        <a href="{% url 'resend_verification' %}" class="text-accent-red hover:underline font-semibold">Click here to verify</a>
-                                    </p>
+                                    <div class="mt-2 flex items-center gap-2">
+                                        <p class="text-sm text-yellow-500">
+                                            ⚠ Email not verified
+                                        </p>
+                                        <a href="{% url 'verify_email_prompt' %}" class="text-sm text-accent-red hover:underline font-semibold">
+                                            Verify Now
+                                        </a>
+                                    </div>
                                 {% endif %}
                             {% else %}
                                 <p class="mt-2 text-sm text-green-500">
@@ -219,6 +233,22 @@
                                 class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-accent-red transition-colors"
                                 placeholder="+1 (234) 567-8900"
                             >
+                            {% if user.profile.phone_number %}
+                                {% if not user.profile.phone_verified %}
+                                    <div class="mt-2 flex items-center gap-2">
+                                        <p class="text-sm text-yellow-500">
+                                            ⚠ Phone not verified
+                                        </p>
+                                        <a href="{% url 'verify_phone_prompt' %}" class="text-sm text-accent-red hover:underline font-semibold">
+                                            Verify Now
+                                        </a>
+                                    </div>
+                                {% else %}
+                                    <p class="mt-2 text-sm text-green-500">
+                                        ✓ Phone verified
+                                    </p>
+                                {% endif %}
+                            {% endif %}
                         </div>
 
                         <button 

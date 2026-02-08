@@ -10,6 +10,9 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from .models import UserProfile, FavoriteCar, Car, CarImage, AdminUser
 import json
+import logging
+
+logger = logging.getLogger(__name__)
 
 def home(request):
     """Render the home page."""
@@ -33,8 +36,11 @@ def location(request):
 @login_required
 def admin_panel(request):
     """Render the admin panel page - restricted to admin users."""
-    # Check if user is admin
-    if request.user.email not in settings.ADMIN_EMAILS:
+    # Check if user is admin (either in ADMIN_EMAILS or has AdminUser record)
+    is_admin = (request.user.email in settings.ADMIN_EMAILS or 
+                hasattr(request.user, 'admin_profile'))
+    
+    if not is_admin:
         messages.error(request, 'You do not have permission to access the admin panel.')
         return redirect('home')
     
@@ -124,17 +130,17 @@ def signup_view(request):
                 last_name=last_name
             )
             
-            # Generate verification token
-            token = user.profile.generate_verification_token()
+            # Generate 6-digit verification code
+            code = user.profile.generate_verification_code()
             
-            # Send verification email
-            send_verification_email(user, token)
+            # Send verification email with code
+            send_verification_email_with_code(user, code)
             
             # Log the user in
             auth_login(request, user)
             
-            messages.success(request, f'Welcome to M&R Motors, {first_name}! Please check your email to verify your account.')
-            return redirect('verify_email_sent', email=email)
+            messages.success(request, f'Welcome to M&R Motors, {first_name}! Please check your email for a 6-digit verification code.')
+            return redirect('verify_email_prompt')
             
         except Exception as e:
             messages.error(request, 'An error occurred during signup. Please try again.')
@@ -206,17 +212,36 @@ def password_reset_confirm(request, token):
         return redirect('password_reset')
 
 def verify_email(request, token):
-    """Handle email verification."""
+    """Handle email verification via old token method (backwards compatibility)."""
     try:
         profile = UserProfile.objects.get(verification_token=token)
         profile.verify_email()
         
         messages.success(request, 'Your email has been verified successfully!')
-        return redirect('login')
+        return redirect('profile')
         
     except UserProfile.DoesNotExist:
         messages.error(request, 'Invalid verification link.')
         return redirect('home')
+
+@login_required
+def verify_email_prompt(request):
+    """Show email verification code entry form."""
+    if request.user.profile.email_verified:
+        messages.info(request, 'Your email is already verified.')
+        return redirect('profile')
+    
+    if request.method == 'POST':
+        code = request.POST.get('code', '').strip()
+        
+        if request.user.profile.is_verification_code_valid(code):
+            request.user.profile.verify_email()
+            messages.success(request, 'Your email has been verified successfully!')
+            return redirect('profile')
+        else:
+            messages.error(request, 'Invalid or expired verification code. Please try again or request a new code.')
+    
+    return render(request, 'verify_email_code.html')
 
 def verify_email_sent(request, email):
     """Show email verification sent page."""
@@ -241,11 +266,11 @@ def resend_verification(request):
             messages.info(request, 'Your email is already verified.')
             return redirect('profile')
         
-        # Send verification email
+        # Send verification email with 6-digit code
         try:
-            token = user.profile.generate_verification_token()
-            send_verification_email(user, token)
-            messages.success(request, 'Verification email has been sent to your inbox.')
+            code = user.profile.generate_verification_code()
+            send_verification_email_with_code(user, code)
+            messages.success(request, 'Verification code has been sent to your inbox.')
         except Exception as e:
             messages.error(request, f'Failed to send verification email: {str(e)}')
         
@@ -262,14 +287,77 @@ def resend_verification(request):
                 messages.info(request, 'Your email is already verified.')
                 return redirect('login')
             
-            token = user.profile.generate_verification_token()
-            send_verification_email(user, token)
+            code = user.profile.generate_verification_code()
+            send_verification_email_with_code(user, code)
             
             messages.success(request, 'Verification email has been resent.')
         except User.DoesNotExist:
             messages.error(request, 'No account found with this email.')
     
     return redirect('login')
+
+@login_required
+def verify_phone_prompt(request):
+    """Show phone verification code entry form."""
+    if not request.user.profile.phone_number:
+        messages.error(request, 'Please add a phone number to your profile first.')
+        return redirect('profile')
+    
+    if request.user.profile.phone_verified:
+        messages.info(request, 'Your phone number is already verified.')
+        return redirect('profile')
+    
+    if request.method == 'POST':
+        code = request.POST.get('code', '').strip()
+        
+        if request.user.profile.is_phone_verification_code_valid(code):
+            request.user.profile.verify_phone()
+            messages.success(request, 'Your phone number has been verified successfully!')
+            return redirect('profile')
+        else:
+            messages.error(request, 'Invalid or expired verification code. Please try again or request a new code.')
+    else:
+        # Automatically send code when page is loaded for the first time
+        try:
+            code = request.user.profile.generate_phone_verification_code()
+            send_phone_verification_sms(request.user, code)
+            messages.info(request, f'Verification code sent to {request.user.profile.phone_number}')
+        except Exception as e:
+            logger.error(f'Error sending phone verification on page load: {e}')
+            messages.warning(request, 'Failed to send verification code automatically. Please use the resend button.')
+    
+    return render(request, 'verify_phone_code.html')
+
+@login_required
+@require_POST
+def send_phone_verification(request):
+    """Send phone verification SMS."""
+    if not request.user.profile.phone_number:
+        return JsonResponse({'success': False, 'error': 'No phone number set'}, status=400)
+    
+    if request.user.profile.phone_verified:
+        return JsonResponse({'success': False, 'error': 'Phone already verified'}, status=400)
+    
+    try:
+        code = request.user.profile.generate_phone_verification_code()
+        success = send_phone_verification_sms(request.user, code)
+        
+        if success:
+            return JsonResponse({
+                'success': True,
+                'message': 'Verification code sent to your phone'
+            })
+        else:
+            return JsonResponse({
+                'success': False,
+                'error': 'Failed to send SMS. Please check your phone number.'
+            }, status=500)
+    except Exception as e:
+        logger.error(f'Error sending phone verification: {e}')
+        return JsonResponse({
+            'success': False,
+            'error': 'Failed to send verification code'
+        }, status=500)
 
 @login_required
 def profile_view(request):
@@ -330,10 +418,10 @@ def update_profile(request):
                 user.profile.email_verified = False
                 user.profile.save()
                 
-                # Send new verification email
+                # Send new verification email with 6-digit code
                 try:
-                    token = user.profile.generate_verification_token()
-                    send_verification_email(user, token)
+                    code = user.profile.generate_verification_code()
+                    send_verification_email_with_code(user, code)
                 except Exception:
                     pass  # Email sending is optional
                 
@@ -342,10 +430,16 @@ def update_profile(request):
             user.save()
             
             # Update phone number
-            user.profile.phone_number = phone
-            user.profile.save()
-            
-            messages.success(request, 'Profile updated successfully!')
+            old_phone = user.profile.phone_number
+            if phone and phone != old_phone:
+                user.profile.phone_number = phone
+                user.profile.phone_verified = False  # Mark as unverified if changed
+                user.profile.save()
+                messages.warning(request, 'Profile updated! Please verify your new phone number.')
+            else:
+                user.profile.phone_number = phone
+                user.profile.save()
+                messages.success(request, 'Profile updated successfully!')
             
         except Exception as e:
             messages.error(request, f'Error updating profile: {str(e)}')
@@ -515,7 +609,7 @@ def get_user_favorites(request):
 
 # Helper functions for sending emails
 def send_verification_email(user, token):
-    """Send email verification link."""
+    """Send email verification link (old method for backwards compatibility)."""
     verification_url = f"{settings.SITE_URL}/verify-email/{token}/"
     
     subject = 'Verify Your Email - M&R Motors'
@@ -526,6 +620,37 @@ def send_verification_email(user, token):
     
     Please click the link below to verify your email address:
     {verification_url}
+    
+    If you didn't create an account, please ignore this email.
+    
+    Best regards,
+    M&R Motors Team
+    """
+    
+    try:
+        send_mail(
+            subject,
+            message,
+            settings.DEFAULT_FROM_EMAIL,
+            [user.email],
+            fail_silently=False,
+        )
+    except Exception as e:
+        print(f"Error sending email: {e}")
+
+def send_verification_email_with_code(user, code):
+    """Send email verification with 6-digit code."""
+    subject = 'Verify Your Email - M&R Motors'
+    message = f"""
+    Hi {user.first_name},
+    
+    Thank you for signing up at M&R Motors!
+    
+    Your email verification code is: {code}
+    
+    This code will expire in 10 minutes.
+    
+    Please enter this code on the verification page to complete your registration.
     
     If you didn't create an account, please ignore this email.
     
@@ -576,12 +701,63 @@ def send_password_reset_email(user, token):
     except Exception as e:
         print(f"Error sending email: {e}")
 
+def send_phone_verification_sms(user, code):
+    """Send SMS verification code using Twilio."""
+    try:
+        from twilio.rest import Client
+        
+        # Get Twilio credentials from settings
+        account_sid = getattr(settings, 'TWILIO_ACCOUNT_SID', None)
+        auth_token = getattr(settings, 'TWILIO_AUTH_TOKEN', None)
+        from_number = getattr(settings, 'TWILIO_PHONE_NUMBER', None)
+        
+        if not all([account_sid, auth_token, from_number]):
+            logger.warning('Twilio credentials not configured. SMS not sent.')
+            # In development, just log the code
+            logger.info(f'Phone verification code for {user.email}: {code}')
+            print(f'📱 Phone verification code for {user.email}: {code}')
+            return True  # Return True in development mode
+        
+        client = Client(account_sid, auth_token)
+        
+        message_body = f"""M&R Motors
+
+Your phone verification code is: {code}
+
+This code will expire in 10 minutes.
+
+If you didn't request this, please ignore this message."""
+        
+        message = client.messages.create(
+            body=message_body,
+            from_=from_number,
+            to=user.profile.phone_number
+        )
+        
+        logger.info(f'SMS sent successfully. SID: {message.sid}')
+        return True
+    except ImportError:
+        logger.warning('Twilio not installed. SMS not sent.')
+        # In development, just log the code
+        logger.info(f'Phone verification code for {user.email}: {code}')
+        print(f'📱 Phone verification code for {user.email}: {code}')
+        return True
+    except Exception as e:
+        logger.error(f'Error sending SMS: {e}')
+        # In development, just log the code
+        logger.info(f'Phone verification code for {user.email}: {code}')
+        print(f'📱 Phone verification code for {user.email}: {code}')
+        return False
+
 
 # Car Management Views
 @login_required
 def add_car_view(request):
     """Add a new car with image uploads."""
-    if request.user.email not in settings.ADMIN_EMAILS:
+    is_admin = (request.user.email in settings.ADMIN_EMAILS or 
+                hasattr(request.user, 'admin_profile'))
+    
+    if not is_admin:
         messages.error(request, 'You do not have permission to add cars.')
         return redirect('home')
     
@@ -646,7 +822,10 @@ def get_cars_api(request):
 @login_required
 def get_admin_cars_api(request):
     """Get all cars including hidden ones for admin panel."""
-    if request.user.email not in settings.ADMIN_EMAILS:
+    is_admin = (request.user.email in settings.ADMIN_EMAILS or 
+                hasattr(request.user, 'admin_profile'))
+    
+    if not is_admin:
         return JsonResponse({'success': False, 'error': 'Permission denied'}, status=403)
     
     # Show ALL cars for admin, including hidden ones
@@ -654,7 +833,7 @@ def get_admin_cars_api(request):
     cars_data = []
     
     for car in cars:
-        images = [{'url': img.image.url, 'is_primary': img.is_primary} for img in car.images.all()]
+        images = [{'id': img.id, 'url': img.image.url, 'is_primary': img.is_primary} for img in car.images.all()]
         cars_data.append({
             'id': car.id,
             'title': car.title,
@@ -678,7 +857,10 @@ def get_admin_cars_api(request):
 @require_POST
 def update_car_view(request, car_id):
     """Update a car."""
-    if request.user.email not in settings.ADMIN_EMAILS:
+    is_admin = (request.user.email in settings.ADMIN_EMAILS or 
+                hasattr(request.user, 'admin_profile'))
+    
+    if not is_admin:
         return JsonResponse({'success': False, 'error': 'Permission denied'}, status=403)
     
     try:
@@ -717,7 +899,10 @@ def update_car_view(request, car_id):
 @require_POST
 def delete_car_view(request, car_id):
     """Delete a car."""
-    if request.user.email not in settings.ADMIN_EMAILS:
+    is_admin = (request.user.email in settings.ADMIN_EMAILS or 
+                hasattr(request.user, 'admin_profile'))
+    
+    if not is_admin:
         return JsonResponse({'success': False, 'error': 'Permission denied'}, status=403)
     
     try:
@@ -733,7 +918,10 @@ def delete_car_view(request, car_id):
 @require_POST
 def delete_car_image_view(request, image_id):
     """Delete a car image."""
-    if request.user.email not in settings.ADMIN_EMAILS:
+    is_admin = (request.user.email in settings.ADMIN_EMAILS or 
+                hasattr(request.user, 'admin_profile'))
+    
+    if not is_admin:
         return JsonResponse({'success': False, 'error': 'Permission denied'}, status=403)
     
     try:
@@ -748,7 +936,10 @@ def delete_car_image_view(request, image_id):
 @require_POST
 def toggle_car_sold_status(request, car_id):
     """Toggle the sold status of a car."""
-    if request.user.email not in settings.ADMIN_EMAILS:
+    is_admin = (request.user.email in settings.ADMIN_EMAILS or 
+                hasattr(request.user, 'admin_profile'))
+    
+    if not is_admin:
         return JsonResponse({'success': False, 'error': 'Permission denied'}, status=403)
     
     try:
@@ -767,7 +958,10 @@ def toggle_car_sold_status(request, car_id):
 @require_POST
 def toggle_car_hidden_status(request, car_id):
     """Toggle the hidden status of a car."""
-    if request.user.email not in settings.ADMIN_EMAILS:
+    is_admin = (request.user.email in settings.ADMIN_EMAILS or 
+                hasattr(request.user, 'admin_profile'))
+    
+    if not is_admin:
         return JsonResponse({'success': False, 'error': 'Permission denied'}, status=403)
     
     try:
@@ -786,7 +980,10 @@ def toggle_car_hidden_status(request, car_id):
 @login_required
 def get_admin_users(request):
     """Get all admin users."""
-    if request.user.email not in settings.ADMIN_EMAILS:
+    is_admin = (request.user.email in settings.ADMIN_EMAILS or 
+                hasattr(request.user, 'admin_profile'))
+    
+    if not is_admin:
         return JsonResponse({'success': False, 'error': 'Permission denied'}, status=403)
     
     admin_users = AdminUser.objects.select_related('user', 'created_by').all()
@@ -810,7 +1007,10 @@ def get_admin_users(request):
 @require_POST
 def add_admin_user(request):
     """Add a new admin user."""
-    if request.user.email not in settings.ADMIN_EMAILS:
+    is_admin = (request.user.email in settings.ADMIN_EMAILS or 
+                hasattr(request.user, 'admin_profile'))
+    
+    if not is_admin:
         return JsonResponse({'success': False, 'error': 'Permission denied'}, status=403)
     
     try:
@@ -853,7 +1053,10 @@ def add_admin_user(request):
 @require_POST
 def remove_admin_user(request, admin_id):
     """Remove an admin user."""
-    if request.user.email not in settings.ADMIN_EMAILS:
+    is_admin = (request.user.email in settings.ADMIN_EMAILS or 
+                hasattr(request.user, 'admin_profile'))
+    
+    if not is_admin:
         return JsonResponse({'success': False, 'error': 'Permission denied'}, status=403)
     
     try:
