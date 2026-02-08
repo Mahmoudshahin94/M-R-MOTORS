@@ -161,12 +161,22 @@ cloudinary.config(
     secure=True
 )
 
-# Always use Cloudinary for media storage (required for Vercel)
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-
 # Media files (User uploads)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# Storage configuration for Django 5.2+ (uses STORAGES instead of DEFAULT_FILE_STORAGE)
+STORAGES = {
+    "default": {
+        "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}
+
+# Backwards compatibility for older Django versions
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 # Instant DB Configuration
 INSTANTDB_APP_ID = os.getenv('INSTANTDB_APP_ID', 'a169709c-d938-4489-b196-63dcc30a53ca')
