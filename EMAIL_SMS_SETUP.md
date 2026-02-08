@@ -32,12 +32,14 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = your-gmail@gmail.com
 EMAIL_HOST_PASSWORD = your-16-char-app-password
-DEFAULT_FROM_EMAIL = M&R Motors <your-gmail@gmail.com>
+DEFAULT_FROM_EMAIL = M&R Motors <noreply@mrmotors.com>
 ```
 
 **Replace:**
 - `your-gmail@gmail.com` with your actual Gmail address
 - `your-16-char-app-password` with the password from Step 1
+
+**Note:** `DEFAULT_FROM_EMAIL` is what users see. The email in brackets can be any professional address (it doesn't need to exist). Your Gmail is only used for SMTP authentication.
 
 5. Click **Save** for each variable
 6. Redeploy your application (it will redeploy automatically after saving)
@@ -65,12 +67,14 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = your-email@hotmail.com
 EMAIL_HOST_PASSWORD = your-app-password-from-step1
-DEFAULT_FROM_EMAIL = M&R Motors <your-email@hotmail.com>
+DEFAULT_FROM_EMAIL = M&R Motors <noreply@mrmotors.com>
 ```
 
 **Replace:**
 - `your-email@hotmail.com` with your actual Hotmail/Outlook address (works with @hotmail.com, @outlook.com, @live.com)
 - `your-app-password-from-step1` with the app password you generated
+
+**Note:** `DEFAULT_FROM_EMAIL` is what users see. The email in brackets can be any professional address (it doesn't need to exist). Your Hotmail is only used for SMTP authentication - users won't see it!
 
 5. Click **Save** for each variable
 6. Redeploy your application
@@ -208,7 +212,7 @@ EMAIL_PORT=587
 EMAIL_USE_TLS=True
 EMAIL_HOST_USER=your-gmail@gmail.com
 EMAIL_HOST_PASSWORD=your-gmail-app-password
-DEFAULT_FROM_EMAIL=M&R Motors <your-gmail@gmail.com>
+DEFAULT_FROM_EMAIL=M&R Motors <noreply@mrmotors.com>
 ```
 
 ### For Hotmail/Outlook:
@@ -220,7 +224,7 @@ EMAIL_PORT=587
 EMAIL_USE_TLS=True
 EMAIL_HOST_USER=your-email@hotmail.com
 EMAIL_HOST_PASSWORD=your-outlook-app-password
-DEFAULT_FROM_EMAIL=M&R Motors <your-email@hotmail.com>
+DEFAULT_FROM_EMAIL=M&R Motors <noreply@mrmotors.com>
 ```
 
 ### SMS Configuration (same for both):
@@ -236,17 +240,28 @@ SITE_URL=https://m-r-motors.vercel.app
 
 ---
 
+## 💡 Pro Tips
+
+### Customize Your Sender Email
+You can use any professional display name in `DEFAULT_FROM_EMAIL`:
+- `M&R Motors <noreply@mrmotors.com>` ← Professional, generic
+- `M&R Texas Motors <support@mrmotors.com>` ← With support branding
+- `Your Friends at M&R <hello@mrmotors.com>` ← Friendly tone
+- `M&R Motors Team <info@mrmotors.com>` ← Team approach
+
+**Important:** The email in brackets is just for display - it doesn't need to be a real email address! Your actual email (Gmail/Hotmail) is used only for SMTP authentication behind the scenes.
+
 ## ✅ Verification Checklist
 
-- [ ] Gmail 2-Step Verification enabled
-- [ ] Gmail App Password generated
-- [ ] Email environment variables added to Vercel
-- [ ] Twilio account created
-- [ ] Twilio phone number purchased/activated
-- [ ] SMS environment variables added to Vercel
+- [ ] Gmail/Hotmail 2-Step Verification enabled
+- [ ] App Password generated
+- [ ] Email environment variables added to Vercel (including DEFAULT_FROM_EMAIL)
+- [ ] Twilio account created (optional for SMS)
+- [ ] Twilio phone number purchased/activated (optional for SMS)
+- [ ] SMS environment variables added to Vercel (optional)
 - [ ] Application redeployed
 - [ ] Test email verification
-- [ ] Test SMS verification
+- [ ] Test SMS verification (optional)
 
 ---
 

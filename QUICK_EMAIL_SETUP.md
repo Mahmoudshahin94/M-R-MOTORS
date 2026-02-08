@@ -17,7 +17,7 @@ Follow these simple steps to enable email verification on your site.
 1. Go to: https://vercel.com/dashboard
 2. Click on your **m-r-motors** project
 3. Go to **Settings** → **Environment Variables**
-4. Add these 6 variables (click Add → Name → Value → Save for each):
+4. Add these 7 variables (click Add → Name → Value → Save for each):
 
 | Name | Value |
 |------|-------|
@@ -27,10 +27,15 @@ Follow these simple steps to enable email verification on your site.
 | `EMAIL_USE_TLS` | `True` |
 | `EMAIL_HOST_USER` | `mahmoud_ria@hotmail.com` |
 | `EMAIL_HOST_PASSWORD` | `your-app-password-from-step1` |
+| `DEFAULT_FROM_EMAIL` | `M&R Motors <noreply@mrmotors.com>` |
 
-**Important:** Replace `your-app-password-from-step1` with the actual password you got in Step 1.
+**Important:** 
+- Replace `your-app-password-from-step1` with the actual password you got in Step 1
+- The `DEFAULT_FROM_EMAIL` is what users will see - you can customize it to any professional name!
 
-5. After adding all 6 variables, your app will automatically redeploy
+**Note:** The emails will **display** as coming from "M&R Motors <noreply@mrmotors.com>" but will actually be sent through your Hotmail account. This is normal and professional - users won't see your personal email!
+
+5. After adding all 7 variables, your app will automatically redeploy
 
 ## Step 3: Test It!
 
@@ -54,6 +59,14 @@ Follow these simple steps to enable email verification on your site.
 - Make sure the app password is correct (no spaces)
 - Verify that 2-Step Verification is enabled on your Microsoft account
 - Try regenerating a new app password
+
+### Want to change the sender name?
+You can customize `DEFAULT_FROM_EMAIL` to anything you like:
+- `M&R Motors <noreply@mrmotors.com>` (professional)
+- `M&R Texas Motors <support@mrmotors.com>` (with support)
+- `Your Friends at M&R Motors <hello@mrmotors.com>` (friendly)
+
+The email in brackets doesn't have to be real - it's just for display!
 
 ---
 
