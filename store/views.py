@@ -760,6 +760,7 @@ def test_email_config(request):
     import traceback
     
     config = {
+        'SENDGRID_API_KEY': '***SET***' if settings.SENDGRID_API_KEY else '⚠️ NOT SET',
         'EMAIL_BACKEND': settings.EMAIL_BACKEND,
         'EMAIL_HOST': settings.EMAIL_HOST,
         'EMAIL_PORT': settings.EMAIL_PORT,
