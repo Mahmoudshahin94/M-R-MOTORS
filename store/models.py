@@ -150,6 +150,16 @@ def create_user_profile(sender, instance, created, **kwargs):
 
 @receiver(post_save, sender=User)
 def save_user_profile(sender, instance, **kwargs):
-    """Save the UserProfile whenever the User is saved."""
+    """
+    Save the UserProfile whenever the User is saved.
+    Made defensive to handle database schema issues during deployment.
+    """
     if hasattr(instance, 'profile'):
-        instance.profile.save()
+        try:
+            instance.profile.save()
+        except Exception as e:
+            # Log error but don't fail the user save
+            # This handles cases where database schema isn't fully migrated yet
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.warning(f"Failed to save user profile for user {instance.id}: {e}")

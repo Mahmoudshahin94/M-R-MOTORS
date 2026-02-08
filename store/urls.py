@@ -4,6 +4,7 @@ from . import views_admin
 
 urlpatterns = [
     # Admin/Deployment utilities
+    path('_admin/fix-schema/', views_admin.fix_database_schema, name='fix_schema'),
     path('_admin/run-migrations/', views_admin.run_migrations, name='run_migrations'),
     path('_admin/migration-status/', views_admin.migration_status, name='migration_status'),
     
