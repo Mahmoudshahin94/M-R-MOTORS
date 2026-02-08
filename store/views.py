@@ -134,20 +134,30 @@ def signup_view(request):
                 last_name=last_name
             )
             
-            # Generate verification token (link-based)
-            token = user.profile.generate_verification_token()
-            
-            # Send verification email with link
-            send_verification_email(user, token)
-            
             # Log the user in
             auth_login(request, user)
             
-            messages.success(request, f'Welcome to M&R Motors, {first_name}! Please check your email to verify your account.')
+            # Try to send verification email (don't fail signup if this fails)
+            email_sent = False
+            try:
+                token = user.profile.generate_verification_token()
+                send_verification_email(user, token)
+                email_sent = True
+            except Exception as email_error:
+                logger.error(f"Failed to send verification email during signup: {email_error}")
+                # Continue with signup even if email fails
+            
+            # Show appropriate success message
+            if email_sent:
+                messages.success(request, f'✅ Welcome to M&R Motors, {first_name}! Please check your email to verify your account.')
+            else:
+                messages.warning(request, f'✅ Welcome to M&R Motors, {first_name}! You can send a verification email from your profile.')
+            
             return redirect('profile')
             
         except Exception as e:
-            messages.error(request, 'An error occurred during signup. Please try again.')
+            logger.error(f"Error during user creation: {e}")
+            messages.error(request, '❌ An error occurred during signup. Please try again.')
             return render(request, 'login.html')
     
     return render(request, 'login.html')
