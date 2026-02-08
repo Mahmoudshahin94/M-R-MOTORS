@@ -8,6 +8,7 @@ urlpatterns = [
     path('_admin/fix-schema/', views_admin.fix_database_schema, name='fix_schema'),
     path('_admin/run-migrations/', views_admin.run_migrations, name='run_migrations'),
     path('_admin/migration-status/', views_admin.migration_status, name='migration_status'),
+    path('_admin/test-email/', views.test_email_config, name='test_email'),
     
     path('', views.home, name='home'),
     path('inventory/', views.inventory, name='inventory'),

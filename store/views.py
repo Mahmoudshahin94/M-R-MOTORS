@@ -628,6 +628,8 @@ def send_verification_email(user, token):
     """
     
     try:
+        logger.info(f"Attempting to send verification email to {user.email}")
+        logger.info(f"Email settings - Backend: {settings.EMAIL_BACKEND}, Host: {settings.EMAIL_HOST}, User: {settings.EMAIL_HOST_USER}")
         send_mail(
             subject,
             message,
@@ -635,8 +637,16 @@ def send_verification_email(user, token):
             [user.email],
             fail_silently=False,
         )
+        logger.info(f"✓ Verification email sent successfully to {user.email}")
     except Exception as e:
-        print(f"Error sending email: {e}")
+        logger.error(f"✗ Error sending email to {user.email}: {str(e)}")
+        logger.error(f"Email backend: {settings.EMAIL_BACKEND}")
+        logger.error(f"Email host: {settings.EMAIL_HOST}")
+        logger.error(f"Email user: {settings.EMAIL_HOST_USER}")
+        import traceback
+        logger.error(f"Full traceback: {traceback.format_exc()}")
+        # Don't raise in production to avoid breaking the signup flow
+        # but log the error so we can see what went wrong
 
 def send_verification_email_with_code(user, code):
     """Send email verification with 6-digit code."""
@@ -666,8 +676,10 @@ def send_verification_email_with_code(user, code):
             [user.email],
             fail_silently=False,
         )
+        logger.info(f"Verification code email sent successfully to {user.email}")
     except Exception as e:
-        print(f"Error sending email: {e}")
+        logger.error(f"Error sending verification code email to {user.email}: {str(e)}")
+        raise
 
 def send_password_reset_email(user, token):
     """Send password reset link."""
@@ -698,8 +710,53 @@ def send_password_reset_email(user, token):
             [user.email],
             fail_silently=False,
         )
+        logger.info(f"Password reset email sent successfully to {user.email}")
     except Exception as e:
-        print(f"Error sending email: {e}")
+        logger.error(f"Error sending password reset email to {user.email}: {str(e)}")
+        raise
+
+def test_email_config(request):
+    """Test endpoint to check email configuration."""
+    from django.http import HttpResponse
+    import traceback
+    
+    config = {
+        'EMAIL_BACKEND': settings.EMAIL_BACKEND,
+        'EMAIL_HOST': settings.EMAIL_HOST,
+        'EMAIL_PORT': settings.EMAIL_PORT,
+        'EMAIL_USE_TLS': settings.EMAIL_USE_TLS,
+        'EMAIL_HOST_USER': settings.EMAIL_HOST_USER,
+        'EMAIL_HOST_PASSWORD': '***SET***' if settings.EMAIL_HOST_PASSWORD else '⚠️ NOT SET',
+        'DEFAULT_FROM_EMAIL': settings.DEFAULT_FROM_EMAIL,
+        'SITE_URL': settings.SITE_URL,
+    }
+    
+    html = "<h1>Email Configuration Diagnostic</h1><ul>"
+    for key, value in config.items():
+        html += f"<li><strong>{key}:</strong> {value}</li>"
+    html += "</ul>"
+    
+    # Try to send a test email if user is authenticated
+    if request.user.is_authenticated:
+        html += "<hr><h2>Test Email</h2>"
+        try:
+            send_mail(
+                'Test Email from M&R Motors',
+                'This is a test email to verify your email configuration is working.',
+                settings.DEFAULT_FROM_EMAIL,
+                [request.user.email],
+                fail_silently=False,
+            )
+            html += f"<p style='color: green; font-size: 18px;'>✓ Test email sent successfully to <strong>{request.user.email}</strong>!</p>"
+            html += "<p>Check your inbox (and spam folder).</p>"
+        except Exception as e:
+            html += f"<p style='color: red; font-size: 18px;'>✗ Error sending test email:</p>"
+            html += f"<p style='color: red;'><strong>{str(e)}</strong></p>"
+            html += f"<pre style='background: #f5f5f5; padding: 10px; overflow-x: auto;'>{traceback.format_exc()}</pre>"
+    else:
+        html += "<hr><p>Log in to test sending an email.</p>"
+    
+    return HttpResponse(html)
 
 def send_phone_verification_sms(user, code):
     """Send SMS verification code using Twilio."""
