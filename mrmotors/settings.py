@@ -74,7 +74,7 @@ ROOT_URLCONF = 'mrmotors.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'store' / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -216,11 +216,15 @@ AUTHENTICATION_BACKENDS = [
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_AUTHENTICATION_METHOD = 'email'
-ACCOUNT_EMAIL_VERIFICATION = 'none'  # Disable email verification for social login
+ACCOUNT_EMAIL_VERIFICATION = 'none'  # Disable email verification completely
 ACCOUNT_LOGIN_ON_GET = False
 SOCIALACCOUNT_AUTO_SIGNUP = True
 SOCIALACCOUNT_EMAIL_REQUIRED = True
 SOCIALACCOUNT_STORE_TOKENS = False
+SOCIALACCOUNT_EMAIL_VERIFICATION = 'none'  # Disable email verification for social accounts
+
+# Custom adapters
+SOCIALACCOUNT_ADAPTER = 'store.adapters.MySocialAccountAdapter'
 
 # Google OAuth Configuration - Use settings-based configuration for serverless
 SOCIALACCOUNT_PROVIDERS = {
@@ -236,7 +240,7 @@ SOCIALACCOUNT_PROVIDERS = {
         'AUTH_PARAMS': {
             'access_type': 'online',
         },
-        'VERIFIED_EMAIL': True,
+        'VERIFIED_EMAIL': True,  # Trust Google's email verification
     }
 }
 

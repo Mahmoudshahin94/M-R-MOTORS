@@ -224,6 +224,34 @@ def verify_email_sent(request, email):
 
 def resend_verification(request):
     """Resend verification email."""
+    # Check if user is authenticated
+    if request.user.is_authenticated:
+        user = request.user
+        
+        # Check if user signed up via Google (social account)
+        if user.socialaccount_set.filter(provider='google').exists():
+            # Mark as verified since Google already verified the email
+            user.profile.email_verified = True
+            user.profile.save()
+            messages.success(request, 'Your email has been verified via Google.')
+            return redirect('profile')
+        
+        # Check if already verified
+        if user.profile.email_verified:
+            messages.info(request, 'Your email is already verified.')
+            return redirect('profile')
+        
+        # Send verification email
+        try:
+            token = user.profile.generate_verification_token()
+            send_verification_email(user, token)
+            messages.success(request, 'Verification email has been sent to your inbox.')
+        except Exception as e:
+            messages.error(request, f'Failed to send verification email: {str(e)}')
+        
+        return redirect('profile')
+    
+    # If not authenticated and POST request
     if request.method == 'POST':
         email = request.POST.get('email')
         

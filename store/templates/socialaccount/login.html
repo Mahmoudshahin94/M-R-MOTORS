@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load socialaccount %}
+
+{% block title %}Google Sign In - M&R Motors{% endblock %}
+
+{% block content %}
+<section class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-primary-black">
+    <div class="max-w-md w-full space-y-8">
+        <!-- Logo and Header -->
+        <div class="text-center">
+            <h2 class="text-4xl font-bold text-white mb-2">
+                Complete Sign In to <span class="text-accent-red">M&R Motors</span>
+            </h2>
+            <p class="text-secondary-silver">Redirecting you to Google for authentication</p>
+        </div>
+
+        <!-- Loading Spinner -->
+        <div class="bg-gray-900 rounded-lg p-12 border border-gray-800 text-center">
+            <div class="flex flex-col items-center justify-center space-y-6">
+                <div class="spinner"></div>
+                <p class="text-secondary-silver">Connecting to Google...</p>
+                <p class="text-sm text-gray-500">Please wait while we redirect you</p>
+            </div>
+        </div>
+
+        <!-- Hidden Form for OAuth Redirect -->
+        <div style="display: none;">
+            <form method="post" action="{% provider_login_url 'google' %}">
+                {% csrf_token %}
+                <button type="submit" id="google-submit-btn">Submit</button>
+            </form>
+        </div>
+
+        <!-- Back Button -->
+        <div class="text-center">
+            <a 
+                href="{% url 'login' %}" 
+                class="text-accent-red hover:text-red-700 text-sm font-medium inline-flex items-center"
+            >
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                </svg>
+                Back to Login
+            </a>
+        </div>
+    </div>
+</section>
+
+<script>
+    // Auto-redirect to Google OAuth
+    window.addEventListener('DOMContentLoaded', function() {
+        const form = document.querySelector('form');
+        if (form) {
+            // Submit after a brief delay to ensure the page is visible
+            setTimeout(function() {
+                form.submit();
+            }, 500);
+        }
+    });
+</script>
+{% endblock %}

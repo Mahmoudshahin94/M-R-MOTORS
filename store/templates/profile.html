@@ -60,9 +60,11 @@
                         </div>
                         <div class="flex justify-between text-sm">
                             <span class="text-secondary-silver">Email Status:</span>
-                            <span class="{% if user.profile.email_verified %}text-green-500{% else %}text-yellow-500{% endif %}">
-                                {% if user.profile.email_verified %}✓ Verified{% else %}⚠ Unverified{% endif %}
-                            </span>
+                            {% if user.profile.email_verified or user.socialaccount_set.all %}
+                                <span class="text-green-500">✓ Verified</span>
+                            {% else %}
+                                <span class="text-yellow-500">⚠ Unverified</span>
+                            {% endif %}
                         </div>
                         <div class="flex justify-between text-sm">
                             <span class="text-secondary-silver">Favorite Cars:</span>
@@ -186,9 +188,21 @@
                                 class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-accent-red transition-colors"
                             >
                             {% if not user.profile.email_verified %}
-                                <p class="mt-2 text-sm text-yellow-500">
-                                    ⚠ Email not verified. 
-                                    <a href="{% url 'resend_verification' %}" class="text-accent-red hover:underline">Resend verification email</a>
+                                {% if user.socialaccount_set.all %}
+                                    <!-- User signed in via social account (Google) -->
+                                    <p class="mt-2 text-sm text-green-500">
+                                        ✓ Email verified via Google
+                                    </p>
+                                {% else %}
+                                    <!-- Regular user needs email verification -->
+                                    <p class="mt-2 text-sm text-yellow-500">
+                                        ⚠ Email not verified. 
+                                        <a href="{% url 'resend_verification' %}" class="text-accent-red hover:underline font-semibold">Click here to verify</a>
+                                    </p>
+                                {% endif %}
+                            {% else %}
+                                <p class="mt-2 text-sm text-green-500">
+                                    ✓ Email verified
                                 </p>
                             {% endif %}
                         </div>
