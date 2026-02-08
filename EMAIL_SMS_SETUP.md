@@ -2,7 +2,11 @@
 
 This guide will help you set up email verification and SMS phone verification for your M&R Motors application.
 
-## 📧 Email Setup (Gmail)
+## 📧 Email Setup
+
+You can use either Gmail or Hotmail/Outlook for sending emails.
+
+### Option 1: Gmail Setup
 
 ### Step 1: Create a Gmail App Password
 
@@ -37,6 +41,39 @@ DEFAULT_FROM_EMAIL = M&R Motors <your-gmail@gmail.com>
 
 5. Click **Save** for each variable
 6. Redeploy your application (it will redeploy automatically after saving)
+
+### Option 2: Hotmail/Outlook Setup
+
+1. Go to your Microsoft Account Security: https://account.microsoft.com/security
+2. Select **Advanced security options**
+3. Under **App passwords**, select **Create a new app password**
+4. Copy the generated password (you'll need this in Step 2)
+
+**Note:** If you don't see App passwords option, you need to enable 2-Step Verification first.
+
+#### Add Hotmail/Outlook Variables to Vercel
+
+1. Go to your Vercel dashboard
+2. Select your **m-r-motors** project
+3. Go to **Settings** → **Environment Variables**
+4. Add the following variables:
+
+```
+EMAIL_BACKEND = django.core.mail.backends.smtp.EmailBackend
+EMAIL_HOST = smtp-mail.outlook.com
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = your-email@hotmail.com
+EMAIL_HOST_PASSWORD = your-app-password-from-step1
+DEFAULT_FROM_EMAIL = M&R Motors <your-email@hotmail.com>
+```
+
+**Replace:**
+- `your-email@hotmail.com` with your actual Hotmail/Outlook address (works with @hotmail.com, @outlook.com, @live.com)
+- `your-app-password-from-step1` with the app password you generated
+
+5. Click **Save** for each variable
+6. Redeploy your application
 
 ---
 
@@ -162,6 +199,7 @@ If you prefer SendGrid over Gmail:
 
 Add these to Vercel **Settings** → **Environment Variables**:
 
+### For Gmail:
 ```env
 # Email Configuration
 EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
@@ -171,7 +209,22 @@ EMAIL_USE_TLS=True
 EMAIL_HOST_USER=your-gmail@gmail.com
 EMAIL_HOST_PASSWORD=your-gmail-app-password
 DEFAULT_FROM_EMAIL=M&R Motors <your-gmail@gmail.com>
+```
 
+### For Hotmail/Outlook:
+```env
+# Email Configuration
+EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
+EMAIL_HOST=smtp-mail.outlook.com
+EMAIL_PORT=587
+EMAIL_USE_TLS=True
+EMAIL_HOST_USER=your-email@hotmail.com
+EMAIL_HOST_PASSWORD=your-outlook-app-password
+DEFAULT_FROM_EMAIL=M&R Motors <your-email@hotmail.com>
+```
+
+### SMS Configuration (same for both):
+```env
 # SMS Configuration
 TWILIO_ACCOUNT_SID=your-twilio-account-sid
 TWILIO_AUTH_TOKEN=your-twilio-auth-token

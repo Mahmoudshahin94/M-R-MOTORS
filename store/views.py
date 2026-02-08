@@ -130,17 +130,17 @@ def signup_view(request):
                 last_name=last_name
             )
             
-            # Generate 6-digit verification code
-            code = user.profile.generate_verification_code()
+            # Generate verification token (link-based)
+            token = user.profile.generate_verification_token()
             
-            # Send verification email with code
-            send_verification_email_with_code(user, code)
+            # Send verification email with link
+            send_verification_email(user, token)
             
             # Log the user in
             auth_login(request, user)
             
-            messages.success(request, f'Welcome to M&R Motors, {first_name}! Please check your email for a 6-digit verification code.')
-            return redirect('verify_email_prompt')
+            messages.success(request, f'Welcome to M&R Motors, {first_name}! Please check your email to verify your account.')
+            return redirect('profile')
             
         except Exception as e:
             messages.error(request, 'An error occurred during signup. Please try again.')
@@ -266,11 +266,11 @@ def resend_verification(request):
             messages.info(request, 'Your email is already verified.')
             return redirect('profile')
         
-        # Send verification email with 6-digit code
+        # Send verification email with link
         try:
-            code = user.profile.generate_verification_code()
-            send_verification_email_with_code(user, code)
-            messages.success(request, 'Verification code has been sent to your inbox.')
+            token = user.profile.generate_verification_token()
+            send_verification_email(user, token)
+            messages.success(request, 'Verification email has been sent to your inbox.')
         except Exception as e:
             messages.error(request, f'Failed to send verification email: {str(e)}')
         
@@ -418,10 +418,10 @@ def update_profile(request):
                 user.profile.email_verified = False
                 user.profile.save()
                 
-                # Send new verification email with 6-digit code
+                # Send new verification email with link
                 try:
-                    code = user.profile.generate_verification_code()
-                    send_verification_email_with_code(user, code)
+                    token = user.profile.generate_verification_token()
+                    send_verification_email(user, token)
                 except Exception:
                     pass  # Email sending is optional
                 
