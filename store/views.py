@@ -124,42 +124,49 @@ def signup_view(request):
         first_name = name_parts[0]
         last_name = name_parts[1] if len(name_parts) > 1 else ''
         
-        # Create user
-        user = User.objects.create_user(
-            username=username,
-            email=email,
-            password=password,
-            first_name=first_name,
-            last_name=last_name
-        )
-        
-        # Ensure user has a profile (should be auto-created by signal, but just in case)
-        if not hasattr(user, 'profile'):
-            from store.models import UserProfile
-            UserProfile.objects.create(user=user)
-        
-        # Log the user in
-        auth_login(request, user)
-        
-        # Try to send verification email (don't fail signup if this fails)
-        email_sent = False
         try:
-            token = user.profile.generate_verification_token()
-            send_verification_email(user, token)
-            email_sent = True
-        except Exception as email_error:
-            logger.error(f"Failed to send verification email during signup: {email_error}")
+            # Create user
+            user = User.objects.create_user(
+                username=username,
+                email=email,
+                password=password,
+                first_name=first_name,
+                last_name=last_name
+            )
+            
+            # Ensure user has a profile (should be auto-created by signal, but just in case)
+            if not hasattr(user, 'profile'):
+                from store.models import UserProfile
+                UserProfile.objects.create(user=user)
+            
+            # Log the user in
+            auth_login(request, user)
+            
+            # Try to send verification email (don't fail signup if this fails)
+            email_sent = False
+            try:
+                token = user.profile.generate_verification_token()
+                send_verification_email(user, token)
+                email_sent = True
+            except Exception as email_error:
+                logger.error(f"Failed to send verification email during signup: {email_error}")
+                import traceback
+                logger.error(f"Email error traceback: {traceback.format_exc()}")
+                # Continue with signup even if email fails
+            
+            # Show appropriate success message
+            if email_sent:
+                messages.success(request, f'✅ Welcome to M&R Motors, {first_name}! Please check your email to verify your account.')
+            else:
+                messages.success(request, f'✅ Welcome to M&R Motors, {first_name}! You can send a verification email from your profile.')
+            
+            return redirect('profile')
+        except Exception as e:
+            logger.error(f"Error during signup: {e}")
             import traceback
-            logger.error(f"Email error traceback: {traceback.format_exc()}")
-            # Continue with signup even if email fails
-        
-        # Show appropriate success message
-        if email_sent:
-            messages.success(request, f'✅ Welcome to M&R Motors, {first_name}! Please check your email to verify your account.')
-        else:
-            messages.success(request, f'✅ Welcome to M&R Motors, {first_name}! You can send a verification email from your profile.')
-        
-        return redirect('profile')
+            logger.error(f"Signup traceback: {traceback.format_exc()}")
+            messages.error(request, f'❌ An error occurred: {str(e)}')
+            return render(request, 'login.html')
     
     return render(request, 'login.html')
 
@@ -648,7 +655,7 @@ def get_user_favorites(request):
 
 # Helper functions for sending emails
 def send_verification_email(user, token):
-    """Send email verification link (old method for backwards compatibility)."""
+    """Send email verification link."""
     verification_url = f"{settings.SITE_URL}/verify-email/{token}/"
     
     subject = 'Verify Your Email - M&R Motors'
@@ -669,23 +676,27 @@ def send_verification_email(user, token):
     try:
         logger.info(f"Attempting to send verification email to {user.email}")
         logger.info(f"Email settings - Backend: {settings.EMAIL_BACKEND}, Host: {settings.EMAIL_HOST}, User: {settings.EMAIL_HOST_USER}")
-        send_mail(
-            subject,
-            message,
-            settings.DEFAULT_FROM_EMAIL,
-            [user.email],
-            fail_silently=False,
+        logger.info(f"FROM email: {settings.DEFAULT_FROM_EMAIL}")
+        
+        from django.core.mail import EmailMessage
+        email = EmailMessage(
+            subject=subject,
+            body=message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to=[user.email],
         )
+        email.send(fail_silently=False)
+        
         logger.info(f"✓ Verification email sent successfully to {user.email}")
     except Exception as e:
         logger.error(f"✗ Error sending email to {user.email}: {str(e)}")
         logger.error(f"Email backend: {settings.EMAIL_BACKEND}")
         logger.error(f"Email host: {settings.EMAIL_HOST}")
         logger.error(f"Email user: {settings.EMAIL_HOST_USER}")
+        logger.error(f"DEFAULT_FROM_EMAIL: {settings.DEFAULT_FROM_EMAIL}")
         import traceback
         logger.error(f"Full traceback: {traceback.format_exc()}")
-        # Don't raise in production to avoid breaking the signup flow
-        # but log the error so we can see what went wrong
+        raise  # Re-raise to be caught by calling function
 
 def send_verification_email_with_code(user, code):
     """Send email verification with 6-digit code."""
