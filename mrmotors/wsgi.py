@@ -8,12 +8,17 @@ https://docs.djangoproject.com/en/5.2/howto/deployment/wsgi/
 """
 
 import os
+import sys
 from django.core.wsgi import get_wsgi_application
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mrmotors.settings')
 
-# Run migrations on Vercel serverless startup
+# Run migrations on Vercel serverless startup BEFORE initializing the app
 if os.environ.get('VERCEL'):
+    print("=" * 50, file=sys.stderr)
+    print("VERCEL ENVIRONMENT DETECTED", file=sys.stderr)
+    print("=" * 50, file=sys.stderr)
+    
     import django
     django.setup()
     
@@ -23,17 +28,24 @@ if os.environ.get('VERCEL'):
     
     try:
         # Test database connection
+        print("Testing database connection...", file=sys.stderr)
         conn = connections['default']
-        conn.cursor()
+        cursor = conn.cursor()
+        cursor.execute("SELECT 1")
+        print("Database connection successful!", file=sys.stderr)
         
         # Run migrations if database is accessible
-        print("Running migrations on Vercel startup...")
-        call_command('migrate', '--noinput', verbosity=0)
-        print("Migrations completed successfully")
+        print("Running migrations...", file=sys.stderr)
+        call_command('migrate', '--noinput', verbosity=1)
+        print("=" * 50, file=sys.stderr)
+        print("MIGRATIONS COMPLETED SUCCESSFULLY", file=sys.stderr)
+        print("=" * 50, file=sys.stderr)
     except OperationalError as e:
-        print(f"Database not accessible, skipping migrations: {e}")
+        print(f"ERROR: Database not accessible: {e}", file=sys.stderr)
     except Exception as e:
-        print(f"Error running migrations: {e}")
+        print(f"ERROR running migrations: {type(e).__name__}: {e}", file=sys.stderr)
+        import traceback
+        traceback.print_exc(file=sys.stderr)
 
 application = get_wsgi_application()
 
