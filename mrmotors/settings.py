@@ -42,6 +42,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'cloudinary_storage',
+    'cloudinary',
     'store',
 ]
 
@@ -143,6 +145,17 @@ STATICFILES_DIRS = [
 # Media files (User uploads)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# Cloudinary Configuration
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': os.getenv('CLOUDINARY_CLOUD_NAME', 'dvgjjnbyb'),
+    'API_KEY': os.getenv('CLOUDINARY_API_KEY', '694911693255957'),
+    'API_SECRET': os.getenv('CLOUDINARY_API_SECRET', 'ftNEjzT7JZkEQSCHPzn-0E2hGqk'),
+}
+
+# Use Cloudinary for media storage in production
+if os.getenv('DATABASE_URL'):  # If we have a production database, use Cloudinary
+    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 # Instant DB Configuration
 INSTANTDB_APP_ID = os.getenv('INSTANTDB_APP_ID', 'a169709c-d938-4489-b196-63dcc30a53ca')
