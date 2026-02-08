@@ -55,10 +55,6 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-# Disable auth-related middleware when using dummy database
-if os.getenv('VERCEL', None) and not os.getenv('DATABASE_URL'):
-    MIDDLEWARE = [m for m in MIDDLEWARE if 'auth' not in m.lower() and 'session' not in m.lower()]
-
 ROOT_URLCONF = 'mrmotors.urls'
 
 TEMPLATES = [
@@ -82,25 +78,19 @@ WSGI_APPLICATION = 'mrmotors.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-# Use PostgreSQL for production (Vercel), SQLite for local development
-if os.getenv('VERCEL', None):
-    # Vercel environment - use PostgreSQL
+# Check if we have a DATABASE_URL (for production/Vercel)
+DATABASE_URL = os.getenv('DATABASE_URL', '')
+
+if DATABASE_URL:
+    # Production environment with PostgreSQL
     import dj_database_url
     DATABASES = {
         'default': dj_database_url.config(
-            default=os.getenv('DATABASE_URL', ''),
+            default=DATABASE_URL,
             conn_max_age=600,
             conn_health_checks=True,
         )
     }
-    
-    # If no database URL is configured, use a dummy backend to prevent errors
-    if not os.getenv('DATABASE_URL'):
-        DATABASES = {
-            'default': {
-                'ENGINE': 'django.db.backends.dummy',
-            }
-        }
 else:
     # Local development - use SQLite
     DATABASES = {
