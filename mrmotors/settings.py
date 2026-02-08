@@ -30,7 +30,15 @@ SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-frecw5o852&w@vo$_k(
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+# Parse ALLOWED_HOSTS from environment variable, add Vercel domains
+allowed_hosts_env = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1')
+ALLOWED_HOSTS = [host.strip() for host in allowed_hosts_env.split(',')]
+
+# Always allow Vercel domains in production
+ALLOWED_HOSTS.extend([
+    'm-r-motors.vercel.app',
+    '.vercel.app',  # Allow all Vercel preview deployments
+])
 
 
 # Application definition
