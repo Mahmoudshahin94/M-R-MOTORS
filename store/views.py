@@ -256,61 +256,72 @@ def profile_view(request):
 def update_profile(request):
     """Update user profile information."""
     if request.method == 'POST':
-        user = request.user
-        
-        # Ensure user has a profile
-        if not hasattr(user, 'profile'):
-            UserProfile.objects.create(user=user)
-        
-        user.first_name = request.POST.get('first_name', '').strip()
-        user.last_name = request.POST.get('last_name', '').strip()
-        new_email = request.POST.get('email', '').strip()
-        phone = request.POST.get('phone', '').strip()
-        
-        # Handle profile picture upload
-        if 'profile_picture' in request.FILES:
-            profile_picture = request.FILES['profile_picture']
+        try:
+            user = request.user
             
-            # Validate file size (max 5MB)
-            if profile_picture.size > 5 * 1024 * 1024:
-                messages.error(request, 'Profile picture must be less than 5MB.')
-                return redirect('profile')
+            # Ensure user has a profile
+            if not hasattr(user, 'profile'):
+                UserProfile.objects.create(user=user)
             
-            # Validate file type
-            allowed_types = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
-            if profile_picture.content_type not in allowed_types:
-                messages.error(request, 'Profile picture must be a valid image file (JPG, PNG, GIF, WEBP).')
-                return redirect('profile')
+            user.first_name = request.POST.get('first_name', '').strip()
+            user.last_name = request.POST.get('last_name', '').strip()
+            new_email = request.POST.get('email', '').strip()
+            phone = request.POST.get('phone', '').strip()
             
-            # Delete old profile picture if exists
-            if user.profile.profile_picture:
-                user.profile.profile_picture.delete(save=False)
+            # Handle profile picture upload
+            if 'profile_picture' in request.FILES:
+                profile_picture = request.FILES['profile_picture']
+                
+                # Validate file size (max 5MB)
+                if profile_picture.size > 5 * 1024 * 1024:
+                    messages.error(request, 'Profile picture must be less than 5MB.')
+                    return redirect('profile')
+                
+                # Validate file type
+                allowed_types = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
+                if profile_picture.content_type not in allowed_types:
+                    messages.error(request, 'Profile picture must be a valid image file (JPG, PNG, GIF, WEBP).')
+                    return redirect('profile')
+                
+                # Delete old profile picture if exists (safely)
+                try:
+                    if user.profile.profile_picture:
+                        user.profile.profile_picture.delete(save=False)
+                except Exception:
+                    pass  # Ignore deletion errors
+                
+                user.profile.profile_picture = profile_picture
             
-            user.profile.profile_picture = profile_picture
-        
-        # Check if email changed and if it's already taken
-        if new_email != user.email:
-            if User.objects.filter(email=new_email).exclude(id=user.id).exists():
-                messages.error(request, 'This email is already in use.')
-                return redirect('profile')
+            # Check if email changed and if it's already taken
+            if new_email != user.email:
+                if User.objects.filter(email=new_email).exclude(id=user.id).exists():
+                    messages.error(request, 'This email is already in use.')
+                    return redirect('profile')
+                
+                user.email = new_email
+                user.profile.email_verified = False
+                user.profile.save()
+                
+                # Send new verification email
+                try:
+                    token = user.profile.generate_verification_token()
+                    send_verification_email(user, token)
+                except Exception:
+                    pass  # Email sending is optional
+                
+                messages.warning(request, 'Email updated. Please check your new email to verify it.')
             
-            user.email = new_email
-            user.profile.email_verified = False
+            user.save()
+            
+            # Update phone number
+            user.profile.phone_number = phone
             user.profile.save()
             
-            # Send new verification email
-            token = user.profile.generate_verification_token()
-            send_verification_email(user, token)
+            messages.success(request, 'Profile updated successfully!')
             
-            messages.warning(request, 'Email updated. Please check your new email to verify it.')
-        
-        user.save()
-        
-        # Update phone number
-        user.profile.phone_number = phone
-        user.profile.save()
-        
-        messages.success(request, 'Profile updated successfully!')
+        except Exception as e:
+            messages.error(request, f'Error updating profile: {str(e)}')
+            return redirect('profile')
     
     return redirect('profile')
 
