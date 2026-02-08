@@ -10,6 +10,42 @@ import sys
 
 
 @csrf_exempt
+@require_http_methods(["GET"])
+def check_varchar_fields(request):
+    """Check all VARCHAR(100) fields in store tables."""
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT table_name, column_name, character_maximum_length 
+                FROM information_schema.columns 
+                WHERE table_schema = 'public'
+                AND table_name LIKE 'store_%'
+                AND data_type = 'character varying'
+                ORDER BY table_name, column_name
+            """)
+            fields = [
+                {
+                    'table': row[0],
+                    'column': row[1],
+                    'max_length': row[2]
+                }
+                for row in cursor.fetchall()
+            ]
+            
+        return JsonResponse({
+            'status': 'success',
+            'fields': fields
+        })
+    except Exception as e:
+        import traceback
+        return JsonResponse({
+            'status': 'error',
+            'message': str(e),
+            'traceback': traceback.format_exc()
+        }, status=500)
+
+
+@csrf_exempt
 @require_http_methods(["GET", "POST"])
 def fix_database_schema(request):
     """
@@ -22,50 +58,37 @@ def fix_database_schema(request):
         with connection.cursor() as cursor:
             # Check current schema
             cursor.execute("""
-                SELECT column_name, character_maximum_length 
+                SELECT table_name, column_name, character_maximum_length 
                 FROM information_schema.columns 
-                WHERE table_name = 'store_userprofile' 
-                AND column_name IN ('verification_token', 'reset_token')
+                WHERE table_schema = 'public'
+                AND table_name LIKE 'store_%'
+                AND data_type = 'character varying'
+                AND character_maximum_length = 100
             """)
-            before = dict(cursor.fetchall())
-            results.append(f"Before: {before}")
+            varchar100_fields = cursor.fetchall()
+            results.append(f"VARCHAR(100) fields found: {varchar100_fields}")
             
-            # Fix verification_token
-            try:
-                cursor.execute(
-                    "ALTER TABLE store_userprofile ALTER COLUMN verification_token TYPE VARCHAR(255);"
-                )
-                results.append("✓ Fixed verification_token to VARCHAR(255)")
-            except Exception as e:
-                results.append(f"verification_token: {str(e)}")
-            
-            # Fix reset_token
-            try:
-                cursor.execute(
-                    "ALTER TABLE store_userprofile ALTER COLUMN reset_token TYPE VARCHAR(255);"
-                )
-                results.append("✓ Fixed reset_token to VARCHAR(255)")
-            except Exception as e:
-                results.append(f"reset_token: {str(e)}")
-            
-            # Fix car_id
-            try:
-                cursor.execute(
-                    "ALTER TABLE store_favoritecar ALTER COLUMN car_id TYPE VARCHAR(255);"
-                )
-                results.append("✓ Fixed car_id to VARCHAR(255)")
-            except Exception as e:
-                results.append(f"car_id: {str(e)}")
+            # Fix all VARCHAR(100) fields to VARCHAR(255)
+            for table, column, length in varchar100_fields:
+                try:
+                    cursor.execute(
+                        f"ALTER TABLE {table} ALTER COLUMN {column} TYPE VARCHAR(255);"
+                    )
+                    results.append(f"✓ Fixed {table}.{column} to VARCHAR(255)")
+                except Exception as e:
+                    results.append(f"✗ {table}.{column}: {str(e)}")
             
             # Check after
             cursor.execute("""
-                SELECT column_name, character_maximum_length 
+                SELECT table_name, column_name, character_maximum_length 
                 FROM information_schema.columns 
-                WHERE table_name = 'store_userprofile' 
-                AND column_name IN ('verification_token', 'reset_token')
+                WHERE table_schema = 'public'
+                AND table_name LIKE 'store_%'
+                AND data_type = 'character varying'
+                AND character_maximum_length = 100
             """)
-            after = dict(cursor.fetchall())
-            results.append(f"After: {after}")
+            remaining = cursor.fetchall()
+            results.append(f"Remaining VARCHAR(100) fields: {remaining}")
         
         return JsonResponse({
             'status': 'success',
