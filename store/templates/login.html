@@ -262,24 +262,12 @@
         loginForm.classList.add('hidden');
     });
 
-    // Google OAuth handlers
+    // Google OAuth handlers - redirect to allauth provider
     const googleLoginBtn = document.getElementById('google-login-btn');
     const googleSignupBtn = document.getElementById('google-signup-btn');
 
-    async function handleGoogleAuth() {
-        try {
-            // Check if Google OAuth client ID is configured
-            const clientId = '{{ settings.GOOGLE_OAUTH_CLIENT_ID }}';
-            if (!clientId) {
-                alert('Google Sign-In is not configured yet. Please use email/password to sign in.');
-                return;
-            }
-
-            alert('Google Sign-In will be available soon. Please use email/password for now.');
-        } catch (error) {
-            console.error('Google auth error:', error);
-            alert('Google sign in is temporarily unavailable. Please use email/password.');
-        }
+    function handleGoogleAuth() {
+        window.location.href = '/accounts/google/login/';
     }
 
     if (googleLoginBtn) {
