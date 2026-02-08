@@ -58,6 +58,11 @@ INSTALLED_APPS = [
 # Required for django-allauth
 SITE_ID = 1
 
+# Site domain configuration
+if DATABASE_URL:
+    # For production, we'll update the site domain programmatically
+    pass
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -228,7 +233,6 @@ SOCIALACCOUNT_PROVIDERS = {
         'APP': {
             'client_id': os.getenv('GOOGLE_OAUTH_CLIENT_ID', ''),
             'secret': os.getenv('GOOGLE_OAUTH_CLIENT_SECRET', ''),
-            'key': ''
         },
         'SCOPE': [
             'profile',
@@ -240,9 +244,6 @@ SOCIALACCOUNT_PROVIDERS = {
         'VERIFIED_EMAIL': True,
     }
 }
-
-# Use settings-based providers instead of database
-SOCIALACCOUNT_ONLY = True
 
 # Email Configuration
 # For development, we'll use console backend (prints emails to console)
