@@ -1,7 +1,12 @@
 from django.urls import path
 from . import views
+from . import views_admin
 
 urlpatterns = [
+    # Admin/Deployment utilities
+    path('_admin/run-migrations/', views_admin.run_migrations, name='run_migrations'),
+    path('_admin/migration-status/', views_admin.migration_status, name='migration_status'),
+    
     path('', views.home, name='home'),
     path('inventory/', views.inventory, name='inventory'),
     path('car/<str:car_id>/', views.car_detail, name='car_detail'),
