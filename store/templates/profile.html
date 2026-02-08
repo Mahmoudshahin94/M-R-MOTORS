@@ -209,12 +209,9 @@
                                         <p class="text-sm text-yellow-500">
                                             ⚠ Email not verified
                                         </p>
-                                        <form method="POST" action="{% url 'resend_verification' %}" style="display: inline;">
-                                            {% csrf_token %}
-                                            <button type="submit" class="text-sm text-accent-red hover:underline font-semibold">
-                                                Send Verification Email
-                                            </button>
-                                        </form>
+                                        <button type="button" onclick="sendVerificationEmail()" class="text-sm text-accent-red hover:underline font-semibold">
+                                            Send Verification Email
+                                        </button>
                                     </div>
                                 {% endif %}
                             {% else %}
@@ -575,6 +572,25 @@
                 confirmNewPassword.setCustomValidity('');
             }
         });
+    }
+
+    // Send verification email function
+    function sendVerificationEmail() {
+        // Create a form and submit it
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '{% url "resend_verification" %}';
+        
+        // Add CSRF token
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrfmiddlewaretoken';
+        csrfInput.value = '{{ csrf_token }}';
+        form.appendChild(csrfInput);
+        
+        // Append form to body and submit
+        document.body.appendChild(form);
+        form.submit();
     }
 </script>
 {% endblock %}
