@@ -45,6 +45,7 @@ urlpatterns = [
     
     # Car Management
     path('api/cars/', views.get_cars_api, name='get_cars_api'),
+    path('api/admin/cars/', views.get_admin_cars_api, name='get_admin_cars_api'),
     path('api/cars/add/', views.add_car_view, name='add_car'),
     path('api/cars/<int:car_id>/update/', views.update_car_view, name='update_car'),
     path('api/cars/<int:car_id>/delete/', views.delete_car_view, name='delete_car'),

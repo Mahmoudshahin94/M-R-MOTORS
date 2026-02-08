@@ -378,7 +378,7 @@
         grid.classList.add('hidden');
         
         try {
-            const response = await fetch('{% url "get_cars_api" %}');
+            const response = await fetch('{% url "get_admin_cars_api" %}');
             const data = await response.json();
             
             loading.classList.add('hidden');
@@ -386,14 +386,15 @@
             if (data.cars && data.cars.length > 0) {
                 grid.classList.remove('hidden');
                 grid.innerHTML = data.cars.map(car => `
-                    <div class="bg-gray-800 rounded-lg overflow-hidden border border-gray-700 hover:border-accent-red transition-colors">
+                    <div class="bg-gray-800 rounded-lg overflow-hidden border-2 ${car.is_hidden ? 'border-purple-500 opacity-60' : 'border-gray-700'} hover:border-accent-red transition-colors">
                         <div class="relative">
                             <img 
                                 src="${car.primary_image || 'https://via.placeholder.com/400x300?text=No+Image'}" 
                                 alt="${car.title}"
                                 class="w-full h-48 object-cover"
                             >
-                            ${car.is_sold ? '<div class="absolute top-2 right-2 bg-red-600 text-white px-3 py-1 rounded-full text-sm font-bold">SOLD</div>' : ''}
+                            ${car.is_sold ? '<div class="absolute top-2 left-2 bg-red-600 text-white px-3 py-1 rounded-full text-sm font-bold">SOLD</div>' : ''}
+                            ${car.is_hidden ? '<div class="absolute top-2 right-2 bg-purple-600 text-white px-3 py-1 rounded-full text-sm font-bold">🙈 HIDDEN</div>' : ''}
                         </div>
                         <div class="p-4">
                             <h3 class="text-white font-bold text-lg mb-2">${car.title}</h3>

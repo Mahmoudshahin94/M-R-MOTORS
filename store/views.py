@@ -644,6 +644,37 @@ def get_cars_api(request):
 
 
 @login_required
+def get_admin_cars_api(request):
+    """Get all cars including hidden ones for admin panel."""
+    if request.user.email not in settings.ADMIN_EMAILS:
+        return JsonResponse({'success': False, 'error': 'Permission denied'}, status=403)
+    
+    # Show ALL cars for admin, including hidden ones
+    cars = Car.objects.all()
+    cars_data = []
+    
+    for car in cars:
+        images = [{'url': img.image.url, 'is_primary': img.is_primary} for img in car.images.all()]
+        cars_data.append({
+            'id': car.id,
+            'title': car.title,
+            'car_model': car.car_model,
+            'year': car.year,
+            'price': float(car.price),
+            'description': car.description,
+            'mileage': car.mileage,
+            'condition': car.condition,
+            'is_sold': car.is_sold,
+            'is_hidden': car.is_hidden,
+            'images': images,
+            'primary_image': car.primary_image.image.url if car.primary_image else None,
+            'created_at': car.created_at.isoformat(),
+        })
+    
+    return JsonResponse({'cars': cars_data})
+
+
+@login_required
 @require_POST
 def update_car_view(request, car_id):
     """Update a car."""
